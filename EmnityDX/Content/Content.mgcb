@@ -24,3 +24,9 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/ball.png
 
+#begin SpriteFonts/CaviarDreamsBold12.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:TextureFormat=Compressed
+/build:SpriteFonts/CaviarDreamsBold12.spritefont
+

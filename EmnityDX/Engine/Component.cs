@@ -21,5 +21,6 @@ namespace EmnityDX.Engine
         public const Component MOVEMENT = Component.COMPONENT_POSITION | Component.COMPONENT_VELOCITY;
         public const Component DRAWABLE = Component.COMPONENT_POSITION | Component.COMPONENT_SPRITE;
         public const Component DRAWABLE_LABEL = Component.COMPONENT_POSITION | Component.COMPONENT_LABEL;
+        public const Component DRAWABLE_HEALTH = Component.COMPONENT_POSITION | Component.COMPONENT_HEALTH | Component.COMPONENT_LABEL;
     }
 }

@@ -5,6 +5,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace EmnityDX
 {
@@ -15,11 +17,14 @@ namespace EmnityDX
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+        private State _currentState;
+        private Queue<State> _states;
 
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
+            _states = new Queue<State>();
         }
 
         /// <summary>
@@ -32,9 +37,8 @@ namespace EmnityDX
         {
             this.Window.ClientSizeChanged += new System.EventHandler<System.EventArgs>(Resize_Window);
             Window.AllowUserResizing = true;
-            StateManager.Instance.SetWindowDimensions(800, 600);
-            graphics.PreferredBackBufferWidth = (int)StateManager.Instance.Dimensions.X;
-            graphics.PreferredBackBufferHeight = (int)StateManager.Instance.Dimensions.Y;
+            graphics.PreferredBackBufferWidth = 800;
+            graphics.PreferredBackBufferHeight = 600;
             base.Initialize();
         }
 
@@ -46,8 +50,7 @@ namespace EmnityDX
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            StateManager.Instance.LoadContent(Content);
-            StateManager.Instance.SetScreen(new TestState());
+            _states.Enqueue(new TestState(Content, ref graphics));
         }
 
         /// <summary>
@@ -67,11 +70,25 @@ namespace EmnityDX
         protected override void Update(GameTime gameTime)
         {
             graphics.ApplyChanges();
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            _currentState = _states.Peek();
+            State nextState = _currentState.UpdateContent(gameTime, ref graphics);
+            if(nextState != _currentState && nextState != null)
+            {
+                State tempState = _states.Dequeue();
+                _states.Enqueue(nextState);
+                if (tempState != _states.Peek())
+                {
+                    _states.Enqueue(tempState);
+                }
+            }
+            else if (nextState == null)
+            {
+                _states.Dequeue();
+            }
+            if (_states.Count == 0)
+            {
                 Exit();
-
-            StateManager.Instance.UpdateContent(gameTime, ref graphics);
-
+            }
             base.Update(gameTime);
         }
 
@@ -83,7 +100,7 @@ namespace EmnityDX
         {
             GraphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
-            StateManager.Instance.DrawContent(spriteBatch, ref graphics);
+            _currentState.DrawContent(spriteBatch, ref graphics);
             spriteBatch.End();
             base.Draw(gameTime);
         }
@@ -92,7 +109,6 @@ namespace EmnityDX
         {
             graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
             graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
-            StateManager.Instance.SetWindowDimensions(Window.ClientBounds.Width, Window.ClientBounds.Height);
         }
     }
 }

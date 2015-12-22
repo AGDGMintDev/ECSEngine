@@ -40,16 +40,18 @@
   <ItemGroup>
     <Compile Include="Engine\Component.cs" />
     <Compile Include="Engine\Entity.cs" />
-    <Compile Include="Engine\EntityManager.cs" />
     <Compile Include="Engine\State.cs" />
-    <Compile Include="Engine\StateManager.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="Objects\Components\Health.cs" />
     <Compile Include="Objects\Components\Label.cs" />
     <Compile Include="Objects\Components\Position.cs" />
     <Compile Include="Objects\Components\Sprite.cs" />
     <Compile Include="Objects\Components\Velocity.cs" />
+    <Compile Include="Objects\States\MenuState.cs" />
+    <Compile Include="Objects\States\PauseState.cs" />
+    <Compile Include="Objects\States\PlayingState.cs" />
     <Compile Include="Objects\States\TestState.cs" />
+    <Compile Include="Objects\States\TitleState.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
