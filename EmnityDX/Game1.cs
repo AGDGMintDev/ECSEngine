@@ -1,5 +1,7 @@
 ﻿
 using EmnityDX.Engine;
+using EmnityDX.Objects.LevelData;
+using EmnityDX.Objects.LevelData.PlayingStateLevels;
 using EmnityDX.Objects.States;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -10,9 +12,6 @@ using System.Collections.Generic;
 
 namespace EmnityDX
 {
-    /// <summary>
-    /// This is the main type for your game.
-    /// </summary>
     public class Game1 : Game
     {
         GraphicsDeviceManager graphics;
@@ -36,6 +35,7 @@ namespace EmnityDX
         protected override void Initialize()
         {
             this.Window.ClientSizeChanged += new System.EventHandler<System.EventArgs>(Resize_Window);
+            this.IsMouseVisible = true;
             Window.AllowUserResizing = true;
             graphics.PreferredBackBufferWidth = 800;
             graphics.PreferredBackBufferHeight = 600;
@@ -50,7 +50,7 @@ namespace EmnityDX
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            _states.Enqueue(new TestState(Content, ref graphics));
+            _states.Enqueue(new PlayingState(new TestLevel(), Content, graphics));
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace EmnityDX
         {
             graphics.ApplyChanges();
             _currentState = _states.Peek();
-            State nextState = _currentState.UpdateContent(gameTime, ref graphics);
+            State nextState = _currentState.UpdateContent(gameTime);
             if(nextState != _currentState && nextState != null)
             {
                 State tempState = _states.Dequeue();
@@ -89,6 +89,10 @@ namespace EmnityDX
             {
                 Exit();
             }
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            {
+                Exit();
+            }
             base.Update(gameTime);
         }
 
@@ -100,15 +104,18 @@ namespace EmnityDX
         {
             GraphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
-            _currentState.DrawContent(spriteBatch, ref graphics);
+            _currentState.DrawContent(spriteBatch);
             spriteBatch.End();
             base.Draw(gameTime);
         }
 
         private void Resize_Window(object sender, EventArgs e)
         {
-            graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
-            graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
+            if (Window.ClientBounds.Height != 0 && Window.ClientBounds.Width != 0) // Protect against minimizing
+            {
+                graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
+                graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
+            }
         }
     }
 }

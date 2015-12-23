@@ -6,7 +6,7 @@ using System.Text;
 namespace EmnityDX.Engine
 {
     [Flags]
-    public enum Component
+    public enum Component : ulong
     {
         NONE = 0,
         COMPONENT_HEALTH = 1 << 0,

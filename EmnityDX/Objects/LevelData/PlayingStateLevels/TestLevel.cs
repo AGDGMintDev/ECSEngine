@@ -9,60 +9,48 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace EmnityDX.Objects.States
+namespace EmnityDX.Objects.LevelData.PlayingStateLevels
 {
-    public class TestState : State
+    public class TestLevel: Level
     {
 
-        public TestState(ContentManager Content, ref GraphicsDeviceManager graphics)
+        public override void LoadLevel(ContentManager content, GraphicsDeviceManager graphics)
         {
-            base.LoadContent(Content);
-            CreateTestPlayer(ref graphics);
+            CreateTestPlayer(content, graphics);
         }
 
-        public override void UnloadContent()
+        public override Level UpdateLevel(GameTime gameTime, ContentManager content, GraphicsDeviceManager graphics, KeyboardState prevKeyboardState, MouseState prevMouseState, GamePadState prevGamepadState)
         {
-            base.UnloadContent();
+            Level nextLevel = this;
+            PlayerMovement(graphics, gameTime);
+            return nextLevel;
         }
 
-        public override State UpdateContent(GameTime gametime, ref GraphicsDeviceManager graphics)
-        {
-            State nextState = this;
-            PlayerMovement(ref graphics);
-            if(Keyboard.GetState().IsKeyDown(Keys.Enter) && !PrevKeybaordState.IsKeyDown(Keys.Enter))
-            {
-                nextState = new PauseState(_content, ref graphics, Keyboard.GetState());
-            }
-
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                return null;
-
-            PrevKeybaordState = Keyboard.GetState();
-            return nextState;
-        }
-
-        public override void DrawContent(SpriteBatch spriteBatch, ref GraphicsDeviceManager graphics)
+        public override void DrawLevel(SpriteBatch spriteBatch, GraphicsDeviceManager graphics)
         {
             DrawEntities(spriteBatch);
             DrawLabels(spriteBatch);
         }
 
-        private void CreateTestPlayer(ref GraphicsDeviceManager graphics)
+
+
+
+
+        private void CreateTestPlayer(ContentManager content, GraphicsDeviceManager graphics)
         {
             Guid playerId = CreateEntity();
-            Entities.Where(x => x.Id == playerId).Single().ComponentFlags = 
+            Entities.Where(x => x.Id == playerId).Single().ComponentFlags =
                 Component.COMPONENT_SPRITE | Component.COMPONENT_VELOCITY | Component.COMPONENT_POSITION | Component.COMPONENT_LABEL | Component.COMPONENT_HEALTH;
-            SpriteComponents[playerId] = new Sprite() {  SpritePath = _content.Load<Texture2D>("Sprites/Ball") };
-            VelocityComponents[playerId] = new Velocity() { x = 5, y = 5 };
+            SpriteComponents[playerId] = new Sprite() { SpritePath = content.Load<Texture2D>("Sprites/Ball") };
+            VelocityComponents[playerId] = new Velocity() { x = 350, y = 350 };
             PositionComponents[playerId] = new Position() { Pos = new Vector2(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2) };
-            LabelComponents[playerId] = new Label() { Text = "Player Label", SpriteFont = _content.Load<SpriteFont>("SpriteFonts/CaviarDreamsBold12"), Color = Color.Wheat };
+            LabelComponents[playerId] = new Label() { Text = "Player Label", SpriteFont = content.Load<SpriteFont>("SpriteFonts/CaviarDreamsBold12"), Color = Color.Wheat };
             HealthComponents[playerId] = new Health() { CurrentHealth = 50, MaxHealth = 100, MinHealth = 0 };
         }
 
-        
-
-        private void PlayerMovement(ref GraphicsDeviceManager graphics)
+        private void PlayerMovement(GraphicsDeviceManager graphics, GameTime gameTime)
         {
+            var delta = (float)gameTime.ElapsedGameTime.TotalSeconds;
             foreach (Entity entity in Entities)
             {
                 if ((entity.ComponentFlags & ComponentMasks.MOVEMENT) == ComponentMasks.MOVEMENT)
@@ -71,25 +59,25 @@ namespace EmnityDX.Objects.States
                     if (keyState.IsKeyDown(Keys.W) && PositionComponents[entity.Id].Pos.Y > 0)
                     {
                         Position pos = PositionComponents[entity.Id];
-                        pos.Pos.Y -= VelocityComponents[entity.Id].y;
+                        pos.Pos.Y -= VelocityComponents[entity.Id].y * delta;
                         PositionComponents[entity.Id] = pos;
                     }
                     if (keyState.IsKeyDown(Keys.S) && PositionComponents[entity.Id].Pos.Y < graphics.GraphicsDevice.Viewport.Height - SpriteComponents[entity.Id].SpritePath.Bounds.Height)
                     {
                         Position pos = PositionComponents[entity.Id];
-                        pos.Pos.Y += VelocityComponents[entity.Id].y;
+                        pos.Pos.Y += VelocityComponents[entity.Id].y * delta;
                         PositionComponents[entity.Id] = pos;
                     }
                     if (keyState.IsKeyDown(Keys.D) && PositionComponents[entity.Id].Pos.X < graphics.GraphicsDevice.Viewport.Width - SpriteComponents[entity.Id].SpritePath.Bounds.Width)
                     {
                         Position pos = PositionComponents[entity.Id];
-                        pos.Pos.X += VelocityComponents[entity.Id].x;
+                        pos.Pos.X += VelocityComponents[entity.Id].x * delta;
                         PositionComponents[entity.Id] = pos;
                     }
                     if (keyState.IsKeyDown(Keys.A) && PositionComponents[entity.Id].Pos.X > 0)
                     {
                         Position pos = PositionComponents[entity.Id];
-                        pos.Pos.X -= VelocityComponents[entity.Id].x;
+                        pos.Pos.X -= VelocityComponents[entity.Id].x * delta;
                         PositionComponents[entity.Id] = pos;
                     }
                 }
@@ -113,11 +101,17 @@ namespace EmnityDX.Objects.States
                 spriteBatch.DrawString(LabelComponents[y.Id].SpriteFont, LabelComponents[y.Id].Text, new Vector2(PositionComponents[y.Id].Pos.X, PositionComponents[y.Id].Pos.Y - 30), LabelComponents[y.Id].Color));
 
             Entities.Where(x => (x.ComponentFlags & ComponentMasks.DRAWABLE_HEALTH) == ComponentMasks.DRAWABLE_HEALTH).ToList().ForEach(y =>
-                spriteBatch.DrawString(LabelComponents[y.Id].SpriteFont, 
-                    "Max Health: " + HealthComponents[y.Id].MaxHealth + "\nCurrentHealth: " + HealthComponents[y.Id].CurrentHealth, 
-                    new Vector2(PositionComponents[y.Id].Pos.X, 
+                spriteBatch.DrawString(LabelComponents[y.Id].SpriteFont,
+                    "Max Health: " + HealthComponents[y.Id].MaxHealth + "\nCurrentHealth: " + HealthComponents[y.Id].CurrentHealth,
+                    new Vector2(PositionComponents[y.Id].Pos.X,
                     PositionComponents[y.Id].Pos.Y + SpriteComponents[y.Id].SpritePath.Height + 10), Color.Red
                 ));
         }
+
+
+
+
+
+
     }
 }

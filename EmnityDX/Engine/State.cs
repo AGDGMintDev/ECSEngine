@@ -12,72 +12,60 @@ namespace EmnityDX.Engine
 {
     public class State
     {
-        protected ContentManager _content;
-        public List<Entity> Entities { get; set; }
-        public Dictionary<Guid, Health> HealthComponents { get; set; }
-        public Dictionary<Guid, Label> LabelComponents { get; set; }
-        public Dictionary<Guid, Position> PositionComponents { get; set; }
-        public Dictionary<Guid, Velocity> VelocityComponents { get; set; }
-        public Dictionary<Guid, Sprite> SpriteComponents { get; set; }
-        protected KeyboardState PrevKeybaordState { get; set; }
+        protected ContentManager Content;
+        protected MouseState PrevMouseState;
+        protected GamePadState PrevGamepadState;
+        protected KeyboardState PrevKeyboardState;
+        protected Level CurrentLevel;
+        protected GraphicsDeviceManager Graphics;
+
+        public State(Level level, ContentManager content, GraphicsDeviceManager graphics, MouseState mouseState = new MouseState(), GamePadState gamePadState = new GamePadState(), KeyboardState keyboardState = new KeyboardState())
+        {
+            this.Content = new ContentManager(content.ServiceProvider, "Content");
+            Graphics = graphics;
+            PrevMouseState = mouseState;
+            PrevGamepadState = gamePadState;
+            PrevKeyboardState = keyboardState;
+            SetLevel(level);
+        }
 
         ~State()
         {
-            Entities.Clear();
-            Entities.Clear();
-            HealthComponents.Clear();
-            LabelComponents.Clear();
-            PositionComponents.Clear();
-            VelocityComponents.Clear();
-            SpriteComponents.Clear();
-            _content.Unload();
+            if (Content != null) { Content.Unload(); }
         }
 
-        public virtual void LoadContent(ContentManager Content)
+        public virtual State UpdateContent(GameTime gameTime)
         {
 
-            Entities = new List<Entity>();
-            HealthComponents = new Dictionary<Guid, Health>();
-            LabelComponents = new Dictionary<Guid, Label>();
-            PositionComponents = new Dictionary<Guid, Position>();
-            VelocityComponents = new Dictionary<Guid, Velocity>();
-            SpriteComponents = new Dictionary<Guid, Sprite>();
-            _content = new ContentManager(Content.ServiceProvider, "Content");
-        }
+            Level nextLevel = CurrentLevel;
+            nextLevel = CurrentLevel.UpdateLevel(gameTime, Content, Graphics, PrevKeyboardState, PrevMouseState, PrevGamepadState);
+            if (nextLevel != CurrentLevel && nextLevel != null)
+            {
+                SetLevel(nextLevel);
+            }
+            if (nextLevel == null)
+            {
+                return null;
+            }
 
-        public virtual void UnloadContent()
-        {
-            if (_content != null) { _content.Unload(); }
-        }
-
-        public virtual State UpdateContent(GameTime gametime, ref GraphicsDeviceManager graphics)
-        {
+            PrevKeyboardState = Keyboard.GetState();
+            PrevMouseState = Mouse.GetState();
+            PrevGamepadState = GamePad.GetState(PlayerIndex.One);
             return this;
         }
 
-        public virtual void DrawContent(SpriteBatch spriteBatch, ref GraphicsDeviceManager graphics)
+        public virtual void DrawContent(SpriteBatch spriteBatch)
         {
-
+            CurrentLevel.DrawLevel(spriteBatch, Graphics);
         }
 
-        public Guid CreateEntity()
+        protected void SetLevel(Level level)
         {
-            Entity newEntity = new Entity();
-            Entities.Add(newEntity);
-            return newEntity.Id;
-        }
-
-        public void DestroyEntity(Guid id)
-        {
-            Entity removal = Entities.Where(x => x.Id == id).FirstOrDefault();
-            if (removal != null)
+            if (Content != null && level != null)
             {
-                Entities.Remove(removal);
-                HealthComponents.Remove(id);
-                LabelComponents.Remove(id);
-                PositionComponents.Remove(id);
-                VelocityComponents.Remove(id);
-                SpriteComponents.Remove(id);
+                Content.Unload();
+                CurrentLevel = level;
+                level.LoadLevel(Content, Graphics);
             }
         }
     }
