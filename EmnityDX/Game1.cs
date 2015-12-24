@@ -18,6 +18,8 @@ namespace EmnityDX
         SpriteBatch spriteBatch;
         private State _currentState;
         private Queue<State> _states;
+        private static readonly Vector2 _initialScale = new Vector2(800, 600);
+        
 
         public Game1()
         {
@@ -37,8 +39,8 @@ namespace EmnityDX
             this.Window.ClientSizeChanged += new System.EventHandler<System.EventArgs>(Resize_Window);
             this.IsMouseVisible = true;
             Window.AllowUserResizing = true;
-            graphics.PreferredBackBufferWidth = 800;
-            graphics.PreferredBackBufferHeight = 600;
+            graphics.PreferredBackBufferWidth = (int)_initialScale.X;
+            graphics.PreferredBackBufferHeight = (int)_initialScale.Y;
             base.Initialize();
         }
 
@@ -103,6 +105,7 @@ namespace EmnityDX
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.Black);
+            //spriteBatch.Begin(transformMatrix: Matrix.CreateScale(GetScreenScale()));
             spriteBatch.Begin();
             _currentState.DrawContent(spriteBatch);
             spriteBatch.End();
@@ -116,6 +119,13 @@ namespace EmnityDX
                 graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
                 graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
             }
+        }
+
+        private Vector3 GetScreenScale()
+        {
+            var scaleX = (float)graphics.GraphicsDevice.Viewport.Width / _initialScale.X;
+            var scaleY = (float)graphics.GraphicsDevice.Viewport.Height / _initialScale.Y;
+            return new Vector3(scaleX, scaleY, 1.0f);
         }
     }
 }
