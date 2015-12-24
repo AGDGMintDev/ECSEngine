@@ -19,14 +19,14 @@ namespace EmnityDX.Engine
         protected Level CurrentLevel;
         protected GraphicsDeviceManager Graphics;
 
-        public State(Level level, ContentManager content, GraphicsDeviceManager graphics, MouseState mouseState = new MouseState(), GamePadState gamePadState = new GamePadState(), KeyboardState keyboardState = new KeyboardState())
+        public State(Level level, Camera camera, ContentManager content, GraphicsDeviceManager graphics, MouseState mouseState = new MouseState(), GamePadState gamePadState = new GamePadState(), KeyboardState keyboardState = new KeyboardState())
         {
             this.Content = new ContentManager(content.ServiceProvider, "Content");
             Graphics = graphics;
             PrevMouseState = mouseState;
             PrevGamepadState = gamePadState;
             PrevKeyboardState = keyboardState;
-            SetLevel(level);
+            SetLevel(level, camera);
         }
 
         ~State()
@@ -34,14 +34,14 @@ namespace EmnityDX.Engine
             if (Content != null) { Content.Unload(); }
         }
 
-        public virtual State UpdateContent(GameTime gameTime)
+        public virtual State UpdateContent(GameTime gameTime, Camera camera)
         {
 
             Level nextLevel = CurrentLevel;
-            nextLevel = CurrentLevel.UpdateLevel(gameTime, Content, Graphics, PrevKeyboardState, PrevMouseState, PrevGamepadState);
+            nextLevel = CurrentLevel.UpdateLevel(gameTime, Content, Graphics, PrevKeyboardState, PrevMouseState, PrevGamepadState, camera);
             if (nextLevel != CurrentLevel && nextLevel != null)
             {
-                SetLevel(nextLevel);
+                SetLevel(nextLevel, camera);
             }
             if (nextLevel == null)
             {
@@ -59,13 +59,13 @@ namespace EmnityDX.Engine
             CurrentLevel.DrawLevel(spriteBatch, Graphics);
         }
 
-        protected void SetLevel(Level level)
+        protected void SetLevel(Level level, Camera camera)
         {
             if (Content != null && level != null)
             {
                 Content.Unload();
                 CurrentLevel = level;
-                level.LoadLevel(Content, Graphics);
+                level.LoadLevel(Content, Graphics, camera);
             }
         }
     }

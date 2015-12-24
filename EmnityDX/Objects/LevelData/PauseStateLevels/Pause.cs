@@ -14,12 +14,12 @@ namespace EmnityDX.Objects.LevelData.PauseStateLevels
 {
     public class Pause: Level
     {
-        public override void LoadLevel(ContentManager content, GraphicsDeviceManager graphics)
+        public override void LoadLevel(ContentManager content, GraphicsDeviceManager graphics, Camera camera)
         {
             CreatePauseText(content, graphics);
         }
 
-        public override Level UpdateLevel(GameTime gameTime, ContentManager content, GraphicsDeviceManager graphics, KeyboardState prevKeyboardState, MouseState prevMouseState, GamePadState prevGamepadState)
+        public override Level UpdateLevel(GameTime gameTime, ContentManager content, GraphicsDeviceManager graphics, KeyboardState prevKeyboardState, MouseState prevMouseState, GamePadState prevGamepadState, Camera camera)
         {
             Level nextLevel = this;
 

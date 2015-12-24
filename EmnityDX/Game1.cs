@@ -18,6 +18,7 @@ namespace EmnityDX
         SpriteBatch spriteBatch;
         private State _currentState;
         private Queue<State> _states;
+        private Camera _camera;
         private static readonly Vector2 _initialScale = new Vector2(800, 600);
         
 
@@ -41,6 +42,8 @@ namespace EmnityDX
             Window.AllowUserResizing = true;
             graphics.PreferredBackBufferWidth = (int)_initialScale.X;
             graphics.PreferredBackBufferHeight = (int)_initialScale.Y;
+
+            _camera = new Camera(Vector2.Zero, Vector2.Zero, 0.0f, _initialScale, graphics);
             base.Initialize();
         }
 
@@ -52,7 +55,7 @@ namespace EmnityDX
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            _states.Enqueue(new PlayingState(new TestLevel(), Content, graphics));
+            _states.Enqueue(new PlayingState(new TestLevel(), _camera, Content, graphics));
         }
 
         /// <summary>
@@ -73,7 +76,7 @@ namespace EmnityDX
         {
             graphics.ApplyChanges();
             _currentState = _states.Peek();
-            State nextState = _currentState.UpdateContent(gameTime);
+            State nextState = _currentState.UpdateContent(gameTime, _camera);
             if(nextState != _currentState && nextState != null)
             {
                 State tempState = _states.Dequeue();
@@ -91,10 +94,6 @@ namespace EmnityDX
             {
                 Exit();
             }
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-            {
-                Exit();
-            }
             base.Update(gameTime);
         }
 
@@ -106,7 +105,7 @@ namespace EmnityDX
         {
             GraphicsDevice.Clear(Color.Black);
             //spriteBatch.Begin(transformMatrix: Matrix.CreateScale(GetScreenScale()));
-            spriteBatch.Begin();
+            spriteBatch.Begin(transformMatrix: _camera.GetMatrix());
             _currentState.DrawContent(spriteBatch);
             spriteBatch.End();
             base.Draw(gameTime);
@@ -118,14 +117,9 @@ namespace EmnityDX
             {
                 graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
                 graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
+                _camera.ResetScreenScale(graphics, _initialScale);
+                _camera.Bounds = graphics.GraphicsDevice.Viewport.Bounds;
             }
-        }
-
-        private Vector3 GetScreenScale()
-        {
-            var scaleX = (float)graphics.GraphicsDevice.Viewport.Width / _initialScale.X;
-            var scaleY = (float)graphics.GraphicsDevice.Viewport.Height / _initialScale.Y;
-            return new Vector3(scaleX, scaleY, 1.0f);
         }
     }
 }

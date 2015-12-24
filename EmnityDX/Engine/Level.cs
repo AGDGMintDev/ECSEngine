@@ -19,6 +19,7 @@ namespace EmnityDX.Engine
         public Dictionary<Guid, Position> PositionComponents { get; private set; }
         public Dictionary<Guid, Velocity> VelocityComponents { get; private set; }
         public Dictionary<Guid, Sprite> SpriteComponents { get; private set; }
+        public List<Guid> EntitiesToDelete { get; private set; }
 
 
         public Level()
@@ -29,6 +30,7 @@ namespace EmnityDX.Engine
             PositionComponents = new Dictionary<Guid, Position>();
             VelocityComponents = new Dictionary<Guid, Velocity>();
             SpriteComponents = new Dictionary<Guid, Sprite>();
+            EntitiesToDelete = new List<Guid>();
     }
 
         ~Level()
@@ -40,16 +42,19 @@ namespace EmnityDX.Engine
             PositionComponents.Clear();
             VelocityComponents.Clear();
             SpriteComponents.Clear();
+            EntitiesToDelete.Clear();
         }
 
-        public virtual void LoadLevel(ContentManager content, GraphicsDeviceManager graphics)
+        public virtual void LoadLevel(ContentManager content, GraphicsDeviceManager graphics, Camera camera)
         {
 
         }
 
-        public virtual Level UpdateLevel(GameTime gameTime, ContentManager content, GraphicsDeviceManager graphics, KeyboardState prevKeyboardState, MouseState prevMouseState, GamePadState prevGamepadState)
+        public virtual Level UpdateLevel(GameTime gameTime, ContentManager content, GraphicsDeviceManager graphics, KeyboardState prevKeyboardState, MouseState prevMouseState, GamePadState prevGamepadState, Camera camera)
         {
-            return this;
+            EntitiesToDelete.ForEach(x => DestroyEntity(x));
+            EntitiesToDelete.Clear();
+            return null;
         }
 
         public virtual void DrawLevel(SpriteBatch spriteBatch, GraphicsDeviceManager graphics)

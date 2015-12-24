@@ -13,24 +13,22 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
 {
     public class TestLevel: Level
     {
-        private List<Guid> _entitiesToDestroy;
 
-        public override void LoadLevel(ContentManager content, GraphicsDeviceManager graphics)
+        public override void LoadLevel(ContentManager content, GraphicsDeviceManager graphics, Camera camera)
         {
             CreateTestPlayer(content, graphics);
-            _entitiesToDestroy = new List<Guid>();
         }
 
-        public override Level UpdateLevel(GameTime gameTime, ContentManager content, GraphicsDeviceManager graphics, KeyboardState prevKeyboardState, MouseState prevMouseState, GamePadState prevGamepadState)
+        public override Level UpdateLevel(GameTime gameTime, ContentManager content, GraphicsDeviceManager graphics, KeyboardState prevKeyboardState, MouseState prevMouseState, GamePadState prevGamepadState, Camera camera)
         {
             Level nextLevel = this;
-            Movement(graphics, gameTime);
-            if(Keyboard.GetState().IsKeyDown(Keys.C))
+            Movement(graphics, gameTime, camera);
+            CheckCollision();
+            if(Mouse.GetState().LeftButton == ButtonState.Pressed)
             {
-                ShootBullet(content, graphics);
+                ShootBullet(content, graphics, camera);
             }
-            _entitiesToDestroy.ForEach(x => DestroyEntity(x));
-            _entitiesToDestroy.Clear();
+            base.UpdateLevel(gameTime, content, graphics, prevKeyboardState, prevMouseState, prevGamepadState, camera);
             return nextLevel;
         }
 
@@ -40,30 +38,51 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
             DrawLabels(spriteBatch);
         }
 
-        private void ShootBullet(ContentManager content, GraphicsDeviceManager graphics)
+        private void ShootBullet(ContentManager content, GraphicsDeviceManager graphics, Camera camera)
         {
-            Random random = new Random();
-            Guid id = CreateEntity();
-            Entities.Where(x => x.Id == id).Single().ComponentFlags =
-                Component.COMPONENT_SPRITE | Component.COMPONENT_VELOCITY | Component.COMPONENT_POSITION;
-            SpriteComponents[id] = new Sprite() { SpritePath = content.Load<Texture2D>("Sprites/Ball") };
-            VelocityComponents[id] = new Velocity() { x = random.Next(-150,150), y = random.Next(-150, 150) };
-            PositionComponents[id] = new Position() { Pos = new Vector2(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2)};
+            bool stuff = camera.Bounds.Contains(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y));
+            if (stuff)
+            {
+                Entity player = Entities.Where(x => (x.ComponentFlags & Component.COMPONENT_ISPLAYER) == Component.COMPONENT_ISPLAYER).SingleOrDefault();
+                Random random = new Random();
+                Guid id = CreateEntity();
+                Entities.Where(x => x.Id == id).Single().ComponentFlags =
+                    Component.COMPONENT_SPRITE | Component.COMPONENT_POSITION | Component.COMPONENT_ISCOLLIDABLE;
+                SpriteComponents[id] = new Sprite() { SpritePath = content.Load<Texture2D>("Sprites/Ball"), Color = Color.ForestGreen };
+                PositionComponents[id] = new Position() { Pos = Vector2.Transform(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y), camera.GetInverseMatrix()) };
+            }
         }
 
         private void CreateTestPlayer(ContentManager content, GraphicsDeviceManager graphics)
         {
             Guid playerId = CreateEntity();
             Entities.Where(x => x.Id == playerId).Single().ComponentFlags =
-                Component.COMPONENT_SPRITE | Component.COMPONENT_VELOCITY | Component.COMPONENT_POSITION | Component.COMPONENT_LABEL | Component.COMPONENT_HEALTH | Component.COMPONENT_ISPLAYER;
-            SpriteComponents[playerId] = new Sprite() { SpritePath = content.Load<Texture2D>("Sprites/Ball") };
+                Component.COMPONENT_SPRITE | Component.COMPONENT_VELOCITY | Component.COMPONENT_POSITION | Component.COMPONENT_LABEL | Component.COMPONENT_HEALTH | Component.COMPONENT_ISPLAYER | Component.COMPONENT_ISCOLLIDABLE;
+            SpriteComponents[playerId] = new Sprite() { SpritePath = content.Load<Texture2D>("Sprites/Ball"), Color = Color.Red };
             VelocityComponents[playerId] = new Velocity() { x = 350, y = 350 };
             PositionComponents[playerId] = new Position() { Pos = new Vector2(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height / 2) };
             LabelComponents[playerId] = new Label() { Text = "Player Label", SpriteFont = content.Load<SpriteFont>("SpriteFonts/CaviarDreamsBold12"), Color = Color.Wheat };
             HealthComponents[playerId] = new Health() { CurrentHealth = 50, MaxHealth = 100, MinHealth = 0 };
         }
 
-        private void Movement(GraphicsDeviceManager graphics, GameTime gameTime)
+        private void CheckCollision()
+        {
+            Entities.Where(x => (x.ComponentFlags & (Component.COMPONENT_ISCOLLIDABLE | Component.COMPONENT_ISPLAYER)) == (Component.COMPONENT_ISCOLLIDABLE | Component.COMPONENT_ISPLAYER)).ToList().ForEach(y =>
+            {
+                Entities.Where(c => (c.ComponentFlags & Component.COMPONENT_ISCOLLIDABLE) == Component.COMPONENT_ISCOLLIDABLE && (c.ComponentFlags & Component.COMPONENT_ISPLAYER) != Component.COMPONENT_ISPLAYER).ToList().ForEach(z =>
+                {
+                    if (!Rectangle.Intersect(new Rectangle(PositionComponents[y.Id].Pos.ToPoint(), new Point(SpriteComponents[y.Id].SpritePath.Width, SpriteComponents[y.Id].SpritePath.Height)),
+                        new Rectangle(PositionComponents[z.Id].Pos.ToPoint(), new Point(SpriteComponents[z.Id].SpritePath.Width, SpriteComponents[z.Id].SpritePath.Height))).IsEmpty)
+                    {
+                        Sprite sprite = SpriteComponents[z.Id];
+                        sprite.Color = Color.PaleVioletRed;
+                        SpriteComponents[z.Id] = sprite;
+                    }
+                });
+            });
+        }
+
+        private void Movement(GraphicsDeviceManager graphics, GameTime gameTime, Camera camera)
         {
             var delta = (float)gameTime.ElapsedGameTime.TotalSeconds;
             foreach (Entity entity in Entities)
@@ -77,13 +96,13 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                         pos.Pos.Y -= VelocityComponents[entity.Id].y * delta;
                         PositionComponents[entity.Id] = pos;
                     }
-                    if (keyState.IsKeyDown(Keys.S) && PositionComponents[entity.Id].Pos.Y < graphics.GraphicsDevice.Viewport.Height - SpriteComponents[entity.Id].SpritePath.Bounds.Height)
+                    if (keyState.IsKeyDown(Keys.S))
                     {
                         Position pos = PositionComponents[entity.Id];
                         pos.Pos.Y += VelocityComponents[entity.Id].y * delta;
                         PositionComponents[entity.Id] = pos;
                     }
-                    if (keyState.IsKeyDown(Keys.D) && PositionComponents[entity.Id].Pos.X < graphics.GraphicsDevice.Viewport.Width - SpriteComponents[entity.Id].SpritePath.Bounds.Width)
+                    if (keyState.IsKeyDown(Keys.D))
                     {
                         Position pos = PositionComponents[entity.Id];
                         pos.Pos.X += VelocityComponents[entity.Id].x * delta;
@@ -95,6 +114,8 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                         pos.Pos.X -= VelocityComponents[entity.Id].x * delta;
                         PositionComponents[entity.Id] = pos;
                     }
+
+                    camera.Position = new Vector2(PositionComponents[entity.Id].Pos.X + SpriteComponents[entity.Id].SpritePath.Bounds.Center.X, PositionComponents[entity.Id].Pos.Y + SpriteComponents[entity.Id].SpritePath.Bounds.Center.Y);
                 }
                 else if ((entity.ComponentFlags & ComponentMasks.MOVEMENT) == ComponentMasks.MOVEMENT)
                 {
@@ -109,6 +130,7 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                     }
                     PositionComponents[entity.Id] = pos;
                 }
+                
             }
         }
 
@@ -118,11 +140,11 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
             {
                 if ((entity.ComponentFlags & (ComponentMasks.DRAWABLE | Component.COMPONENT_ISPLAYER)) == (ComponentMasks.DRAWABLE | Component.COMPONENT_ISPLAYER))
                 {
-                    spriteBatch.Draw(SpriteComponents[entity.Id].SpritePath, new Vector2((int)PositionComponents[entity.Id].Pos.X, (int)PositionComponents[entity.Id].Pos.Y), Color.Crimson);
+                    spriteBatch.Draw(SpriteComponents[entity.Id].SpritePath, new Vector2((int)PositionComponents[entity.Id].Pos.X, (int)PositionComponents[entity.Id].Pos.Y), SpriteComponents[entity.Id].Color);
                 }
                 else if ((entity.ComponentFlags & ComponentMasks.DRAWABLE) == ComponentMasks.DRAWABLE)
                 {
-                    spriteBatch.Draw(SpriteComponents[entity.Id].SpritePath, new Vector2((int)PositionComponents[entity.Id].Pos.X, (int)PositionComponents[entity.Id].Pos.Y));
+                    spriteBatch.Draw(SpriteComponents[entity.Id].SpritePath, new Vector2((int)PositionComponents[entity.Id].Pos.X, (int)PositionComponents[entity.Id].Pos.Y), SpriteComponents[entity.Id].Color);
                 }
             }
         }

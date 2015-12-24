@@ -14,21 +14,21 @@ namespace EmnityDX.Objects.States
 {
     public class PlayingState : State
     {
-        public PlayingState(Level level, ContentManager content, GraphicsDeviceManager graphics, MouseState mouseState = new MouseState(), GamePadState gamePadState = new GamePadState(), KeyboardState keyboardState = new KeyboardState()) 
-            : base(level, content, graphics, mouseState, gamePadState, keyboardState)
+        public PlayingState(Level level, Camera camera, ContentManager content, GraphicsDeviceManager graphics, MouseState mouseState = new MouseState(), GamePadState gamePadState = new GamePadState(), KeyboardState keyboardState = new KeyboardState()) 
+            : base(level, camera, content, graphics, mouseState, gamePadState, keyboardState)
         {
 
         }
 
-        public override State UpdateContent(GameTime gameTime)
+        public override State UpdateContent(GameTime gameTime, Camera camera)
         {
             State nextState = this;
             if (Keyboard.GetState().IsKeyDown(Keys.Enter) && !PrevKeyboardState.IsKeyDown(Keys.Enter))
             {
-                nextState = new PauseState(new Pause(), Content, Graphics, Mouse.GetState(), GamePad.GetState(PlayerIndex.One), Keyboard.GetState());
+                nextState = new PauseState(new Pause(), camera, Content, Graphics, Mouse.GetState(), GamePad.GetState(PlayerIndex.One), Keyboard.GetState());
             }
 
-            if( base.UpdateContent(gameTime) == null)
+            if( base.UpdateContent(gameTime, camera) == null)
             {
                 return null;
             }

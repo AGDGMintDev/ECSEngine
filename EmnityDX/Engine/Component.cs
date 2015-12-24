@@ -14,7 +14,8 @@ namespace EmnityDX.Engine
         COMPONENT_VELOCITY = 1 << 2,
         COMPONENT_LABEL = 1 << 3,
         COMPONENT_SPRITE = 1 << 4,
-        COMPONENT_ISPLAYER = 1 << 5
+        COMPONENT_ISPLAYER = 1 << 5,
+        COMPONENT_ISCOLLIDABLE = 1 << 6
     }
 
     public struct ComponentMasks

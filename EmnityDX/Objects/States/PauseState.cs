@@ -14,13 +14,13 @@ namespace EmnityDX.Objects.States
     public class PauseState : State
     {
 
-        public PauseState(Level level, ContentManager content, GraphicsDeviceManager graphics, MouseState mouseState = new MouseState(), GamePadState gamePadState = new GamePadState(), KeyboardState keyboardState = new KeyboardState()) 
-            : base(level, content, graphics, mouseState, gamePadState, keyboardState)
+        public PauseState(Level level, Camera camera, ContentManager content, GraphicsDeviceManager graphics, MouseState mouseState = new MouseState(), GamePadState gamePadState = new GamePadState(), KeyboardState keyboardState = new KeyboardState()) 
+            : base(level, camera, content, graphics, mouseState, gamePadState, keyboardState)
         {
 
         }
 
-        public override State UpdateContent(GameTime gameTime)
+        public override State UpdateContent(GameTime gameTime, Camera camera)
         {
             State nextState = this;
 
@@ -28,7 +28,7 @@ namespace EmnityDX.Objects.States
             {
                 return null;
             }
-            if (base.UpdateContent(gameTime) == null)
+            if (base.UpdateContent(gameTime, camera) == null)
             {
                 return null;
             }
