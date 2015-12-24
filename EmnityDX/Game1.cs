@@ -19,7 +19,7 @@ namespace EmnityDX
         private State _currentState;
         private Queue<State> _states;
         private Camera _camera;
-        private static readonly Vector2 _initialScale = new Vector2(800, 600);
+        private static readonly Vector2 _initialScale = new Vector2(1024, 576);
         
 
         public Game1()
