@@ -18,6 +18,7 @@ namespace EmnityDX.Engine
         public Dictionary<Guid, Label> LabelComponents { get; private set; }
         public Dictionary<Guid, Position> PositionComponents { get; private set; }
         public Dictionary<Guid, Velocity> VelocityComponents { get; private set; }
+        public Dictionary<Guid, Statistics> StatisticsComponents { get; private set; }
         public Dictionary<Guid, Sprite> SpriteComponents { get; private set; }
         public List<Guid> EntitiesToDelete { get; private set; }
 
@@ -30,6 +31,7 @@ namespace EmnityDX.Engine
             PositionComponents = new Dictionary<Guid, Position>();
             VelocityComponents = new Dictionary<Guid, Velocity>();
             SpriteComponents = new Dictionary<Guid, Sprite>();
+            StatisticsComponents = new Dictionary<Guid, Statistics>();
             EntitiesToDelete = new List<Guid>();
     }
 
@@ -42,6 +44,7 @@ namespace EmnityDX.Engine
             PositionComponents.Clear();
             VelocityComponents.Clear();
             SpriteComponents.Clear();
+            StatisticsComponents.Clear();
             EntitiesToDelete.Clear();
         }
 
@@ -57,7 +60,7 @@ namespace EmnityDX.Engine
             return null;
         }
 
-        public virtual void DrawLevel(SpriteBatch spriteBatch, GraphicsDeviceManager graphics)
+        public virtual void DrawLevel(SpriteBatch spriteBatch, GraphicsDeviceManager graphics, Camera camera)
         {
 
         }

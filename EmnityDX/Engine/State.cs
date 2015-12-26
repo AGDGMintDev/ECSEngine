@@ -54,9 +54,9 @@ namespace EmnityDX.Engine
             return this;
         }
 
-        public virtual void DrawContent(SpriteBatch spriteBatch)
+        public virtual void DrawContent(SpriteBatch spriteBatch, Camera camera)
         {
-            CurrentLevel.DrawLevel(spriteBatch, Graphics);
+            CurrentLevel.DrawLevel(spriteBatch, Graphics, camera);
         }
 
         protected void SetLevel(Level level, Camera camera)

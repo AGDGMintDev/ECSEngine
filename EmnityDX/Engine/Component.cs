@@ -15,7 +15,8 @@ namespace EmnityDX.Engine
         COMPONENT_LABEL = 1 << 3,
         COMPONENT_SPRITE = 1 << 4,
         COMPONENT_ISPLAYER = 1 << 5,
-        COMPONENT_ISCOLLIDABLE = 1 << 6
+        COMPONENT_ISCOLLIDABLE = 1 << 6,
+        COMPONENT_STATISTICS = 1 << 7
     }
 
     public struct ComponentMasks
@@ -25,5 +26,6 @@ namespace EmnityDX.Engine
         public const Component DRAWABLE = Component.COMPONENT_POSITION | Component.COMPONENT_SPRITE;
         public const Component DRAWABLE_LABEL = Component.COMPONENT_POSITION | Component.COMPONENT_LABEL;
         public const Component DRAWABLE_HEALTH = Component.COMPONENT_POSITION | Component.COMPONENT_HEALTH | Component.COMPONENT_LABEL;
+        public const Component DRAWABLE_ITEM = Component.COMPONENT_SPRITE | Component.COMPONENT_POSITION | Component.COMPONENT_ISCOLLIDABLE | Component.COMPONENT_STATISTICS | Component.COMPONENT_LABEL;
     }
 }

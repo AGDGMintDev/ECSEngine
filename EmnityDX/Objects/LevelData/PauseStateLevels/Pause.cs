@@ -26,7 +26,7 @@ namespace EmnityDX.Objects.LevelData.PauseStateLevels
             return nextLevel;
         }
 
-        public override void DrawLevel(SpriteBatch spriteBatch, GraphicsDeviceManager graphics)
+        public override void DrawLevel(SpriteBatch spriteBatch, GraphicsDeviceManager graphics, Camera camera)
         {
             DrawLabels(spriteBatch);
         }

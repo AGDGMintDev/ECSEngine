@@ -35,9 +35,9 @@ namespace EmnityDX.Objects.States
             return nextState;
         }
 
-        public override void DrawContent(SpriteBatch spriteBatch)
+        public override void DrawContent(SpriteBatch spriteBatch, Camera camera)
         {
-            base.DrawContent(spriteBatch);
+            base.DrawContent(spriteBatch, camera);
         }
     }
 }

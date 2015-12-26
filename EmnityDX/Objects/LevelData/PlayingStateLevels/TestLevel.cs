@@ -28,13 +28,17 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
             {
                 ShootBullet(content, graphics, camera);
             }
+            if (Mouse.GetState().RightButton == ButtonState.Pressed && prevMouseState.RightButton != ButtonState.Pressed)
+            {
+                CreateItem(content, graphics, camera);
+            }
             base.UpdateLevel(gameTime, content, graphics, prevKeyboardState, prevMouseState, prevGamepadState, camera);
             return nextLevel;
         }
 
-        public override void DrawLevel(SpriteBatch spriteBatch, GraphicsDeviceManager graphics)
+        public override void DrawLevel(SpriteBatch spriteBatch, GraphicsDeviceManager graphics, Camera camera)
         {
-            DrawEntities(spriteBatch);
+            DrawEntities(spriteBatch, camera);
             DrawLabels(spriteBatch);
         }
 
@@ -43,12 +47,36 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
             bool stuff = camera.Bounds.Contains(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y));
             if (stuff)
             {
-                Entity player = Entities.Where(x => (x.ComponentFlags & Component.COMPONENT_ISPLAYER) == Component.COMPONENT_ISPLAYER).SingleOrDefault();
                 Random random = new Random();
                 Guid id = CreateEntity();
                 Entities.Where(x => x.Id == id).Single().ComponentFlags =
                     Component.COMPONENT_SPRITE | Component.COMPONENT_POSITION | Component.COMPONENT_ISCOLLIDABLE;
                 SpriteComponents[id] = new Sprite() { SpritePath = content.Load<Texture2D>("Sprites/Ball"), Color = Color.ForestGreen };
+                PositionComponents[id] = new Position() { Pos = Vector2.Transform(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y), camera.GetInverseMatrix()) };
+            }
+        }
+
+        public void CreateItem(ContentManager content, GraphicsDeviceManager graphics, Camera camera)
+        {
+            bool stuff = camera.Bounds.Contains(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y));
+            if (stuff)
+            {
+                Random random = new Random();
+                double rarity = random.Next(10, 100);
+                Guid id = CreateEntity();
+                Entities.Where(x => x.Id == id).Single().ComponentFlags =
+                    ComponentMasks.DRAWABLE_ITEM;
+                LabelComponents[id] = new Label() { Color = Color.White, Text = "Dropped Item!", SpriteFont = content.Load<SpriteFont>("SpriteFonts/CaviarDreamsBold12") };
+                StatisticsComponents[id] = new Statistics()
+                {
+                    FlavorText = "Wow!  I can't believe this just dropped!",
+                    Rarity = rarity,
+                    MentalDamage = random.Next(100) + rarity,
+                    PhysicalDamage = random.Next(100) + rarity,
+                    Value = rarity * 100,
+                    SpecialEffects = "Every third kill with this weapon causes health to replenish."
+                };
+                SpriteComponents[id] = new Sprite() { SpritePath = content.Load<Texture2D>("Sprites/Ball"), Color = Color.Gold };
                 PositionComponents[id] = new Position() { Pos = Vector2.Transform(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y), camera.GetInverseMatrix()) };
             }
         }
@@ -134,7 +162,7 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
             }
         }
 
-        private void DrawEntities(SpriteBatch spriteBatch)
+        private void DrawEntities(SpriteBatch spriteBatch, Camera camera)
         {
             foreach (Entity entity in Entities)
             {
@@ -145,6 +173,21 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                 else if ((entity.ComponentFlags & ComponentMasks.DRAWABLE) == ComponentMasks.DRAWABLE)
                 {
                     spriteBatch.Draw(SpriteComponents[entity.Id].SpritePath, new Vector2((int)PositionComponents[entity.Id].Pos.X, (int)PositionComponents[entity.Id].Pos.Y), SpriteComponents[entity.Id].Color);
+                }
+                if (((entity.ComponentFlags & ComponentMasks.DRAWABLE_ITEM) == ComponentMasks.DRAWABLE_ITEM) &&
+                    (new Rectangle(PositionComponents[entity.Id].Pos.ToPoint(), new Point(SpriteComponents[entity.Id].SpritePath.Width, SpriteComponents[entity.Id].SpritePath.Height)))
+                    .Contains((Vector2.Transform(new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y), camera.GetInverseMatrix())).ToPoint()))
+                {
+                    var stats = StatisticsComponents[entity.Id];
+                    spriteBatch.DrawString(LabelComponents[entity.Id].SpriteFont,
+                    "Rarity: " + stats.Rarity + "\n"  +
+                    "Mental Damage: " + stats.MentalDamage + "\n" +
+                    "Physical Damage: " + stats.PhysicalDamage + "\n" + 
+                    "Value: " + stats.Value + " $$\n" + 
+                    "Special Effects: " + stats.SpecialEffects + "\n" + 
+                    "\n\n" +
+                    stats.FlavorText, Vector2.Transform(new Vector2(Mouse.GetState().Position.X + 35, Mouse.GetState().Position.Y), camera.GetInverseMatrix()), Color.Gold
+                    );
                 }
             }
         }
