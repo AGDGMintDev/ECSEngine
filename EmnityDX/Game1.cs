@@ -19,8 +19,9 @@ namespace EmnityDX
         private State _currentState;
         private Queue<State> _states;
         private Camera _camera;
-        private static readonly Vector2 _initialScale = new Vector2(1024, 576);
-        
+        private static readonly Vector2 _initialScale = new Vector2(3968, 2232);
+        private static readonly Vector2 _initialSize = new Vector2(1024, 576);
+
 
         public Game1()
         {
@@ -40,8 +41,8 @@ namespace EmnityDX
             this.Window.ClientSizeChanged += new System.EventHandler<System.EventArgs>(Resize_Window);
             this.IsMouseVisible = true;
             Window.AllowUserResizing = true;
-            graphics.PreferredBackBufferWidth = (int)_initialScale.X;
-            graphics.PreferredBackBufferHeight = (int)_initialScale.Y;
+            graphics.PreferredBackBufferWidth = (int)_initialSize.X;
+            graphics.PreferredBackBufferHeight = (int)_initialSize.Y;
 
             _camera = new Camera(Vector2.Zero, Vector2.Zero, 0.0f, _initialScale, graphics);
             base.Initialize();
@@ -55,7 +56,7 @@ namespace EmnityDX
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            _states.Enqueue(new PlayingState(new TestLevel(), _camera, Content, graphics));
+            _states.Enqueue(new PlayingState(new RandomGeneration(), _camera, Content, graphics));
         }
 
         /// <summary>
@@ -103,7 +104,7 @@ namespace EmnityDX
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Black);
+            GraphicsDevice.Clear(Color.Gray);
             //spriteBatch.Begin(transformMatrix: Matrix.CreateScale(GetScreenScale()));
             spriteBatch.Begin(transformMatrix: _camera.GetMatrix());
             _currentState.DrawContent(spriteBatch, _camera);
