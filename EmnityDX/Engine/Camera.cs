@@ -55,11 +55,11 @@ namespace EmnityDX.Engine
 
         public Rectangle GetVisibleArea(GraphicsDeviceManager graphics)
         {
-                var inverseViewMatrix = Matrix.Invert(GetMatrix());
+            var inverseViewMatrix = GetMatrix();
                 var tl = Vector2.Transform(Vector2.Zero, inverseViewMatrix);
-                var tr = Vector2.Transform(new Vector2(graphics.GraphicsDevice.Viewport.X, 0), inverseViewMatrix);
-                var bl = Vector2.Transform(new Vector2(0, graphics.GraphicsDevice.Viewport.Y), inverseViewMatrix);
-                var br = Vector2.Transform(new Vector2(graphics.GraphicsDevice.Viewport.X, graphics.GraphicsDevice.Viewport.Y), inverseViewMatrix);
+                var tr = Vector2.Transform(new Vector2(Bounds.X, 0), inverseViewMatrix);
+                var bl = Vector2.Transform(new Vector2(0, Bounds.Y), inverseViewMatrix);
+                var br = Vector2.Transform(new Vector2(Bounds.X, Bounds.Y), inverseViewMatrix);
                 var min = new Vector2(
                     MathHelper.Min(tl.X, MathHelper.Min(tr.X, MathHelper.Min(bl.X, br.X))),
                     MathHelper.Min(tl.Y, MathHelper.Min(tr.Y, MathHelper.Min(bl.Y, br.Y))));

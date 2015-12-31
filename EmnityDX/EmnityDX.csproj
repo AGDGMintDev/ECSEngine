@@ -38,6 +38,7 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Engine\Ancillary\DungeonRoom.cs" />
     <Compile Include="Engine\Camera.cs" />
     <Compile Include="Engine\Component.cs" />
     <Compile Include="Engine\Entity.cs" />
@@ -50,6 +51,7 @@
     <Compile Include="Objects\Components\Sprite.cs" />
     <Compile Include="Objects\Components\Statistics.cs" />
     <Compile Include="Objects\Components\Velocity.cs" />
+    <Compile Include="Objects\LevelData\PlayingStateLevels\Dungeon.cs" />
     <Compile Include="Objects\LevelData\PlayingStateLevels\RandomGeneration.cs" />
     <Compile Include="Objects\LevelData\PlayingStateLevels\TestLevel.cs" />
     <Compile Include="Objects\States\MenuState.cs" />

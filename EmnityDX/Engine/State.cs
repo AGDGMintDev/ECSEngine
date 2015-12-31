@@ -64,6 +64,7 @@ namespace EmnityDX.Engine
             if (Content != null && level != null)
             {
                 Content.Unload();
+                
                 CurrentLevel = level;
                 level.LoadLevel(Content, Graphics, camera);
             }
