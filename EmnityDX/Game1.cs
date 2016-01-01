@@ -19,8 +19,8 @@ namespace EmnityDX
         private State _currentState;
         private Queue<State> _states;
         private Camera _camera;
-        private static readonly Vector2 _initialScale = new Vector2(3968*2, 2232*2);
-        //private static readonly Vector2 _initialScale = new Vector2(1920, 1080);
+        //private static readonly Vector2 _initialScale = new Vector2(3968*2, 2232*2);
+        private static readonly Vector2 _initialScale = new Vector2(1920, 1080);
         private static readonly Vector2 _initialSize = new Vector2(1024, 576);
 
 
@@ -57,7 +57,7 @@ namespace EmnityDX
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            _states.Enqueue(new PlayingState(new Dungeon(200,100), _camera, Content, graphics));
+            _states.Enqueue(new PlayingState(new Dungeon(100,50), _camera, Content, graphics));
         }
 
         /// <summary>

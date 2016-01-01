@@ -28,6 +28,7 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
     public class Dungeon: Level
     {
         private Texture2D floor;
+        private Texture2D wall;
         private int worldI = 0;
         private int worldJ = 0;
         private DungeonTiles[,] dungeonGrid = null;
@@ -49,6 +50,7 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
         public override void LoadLevel(ContentManager content, GraphicsDeviceManager graphics, Camera camera)
         {
             floor = content.Load<Texture2D>("Sprites/Ball");
+            //wall = content.Load<Texture2D>("Sprites/asciiwall");
             CreatePlayer(content, graphics);
             GenerateDungeon();
         }
@@ -60,7 +62,11 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
             base.UpdateLevel(gameTime, content, graphics, prevKeyboardState, prevMouseState, prevGamepadState, camera);
             if (Keyboard.GetState().IsKeyDown(Keys.Enter) && !prevKeyboardState.IsKeyDown(Keys.Enter))
             {
-                nextLevel = new Dungeon(300,100);
+                nextLevel = new Dungeon(125,75);
+            }
+            if(Keyboard.GetState().IsKeyDown(Keys.PageDown))
+            {
+                camera.ResetScreenScale(graphics, new Vector2(3968 * 2, 2232 * 2));
             }
             return nextLevel;
         }
@@ -85,166 +91,292 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
         private void GenerateDungeon()
         {
             dungeonGrid = new DungeonTiles[worldI, worldJ];
-            var minSize = 12;
-            var maxSize = 45;
-            var attemptLimit = 100;
-            var tries = 0;
 
-            //Empty world
-            //for (int i = 0; i < worldI * worldJ; i++)
-            //{
-            //    dungeonGrid[i % worldI, i / worldI] = DungeonTiles.ROCK;
-            //}
+                
+            bool acceptable = false;
 
-
+            while (!acceptable)
+            {
                 //Cellular Automata
                 for (int i = 0; i < worldI; i++)
                 {
                     for (int j = 0; j < worldJ; j++)
                     {
-                        int choice = random.Next(0,101);
-                        dungeonGrid[i, j] = (choice <= 45) ? DungeonTiles.ROCK : DungeonTiles.FLOOR;
+                        int choice = random.Next(0, 101);
+                        dungeonGrid[i, j] = (choice <= 41) ? DungeonTiles.ROCK : DungeonTiles.FLOOR;
                     }
                 }
 
-
-            int iterations = 4;
-            for (int z = 0; z <= iterations; z++)
-            {
-                for (int i = 0; i < worldI; i++)
+                int iterations = 12;
+                for (int z = 0; z <= iterations; z++)
                 {
-                    for (int j = 0; j < worldJ; j++)
+                    DungeonTiles[,] newMap = new DungeonTiles[worldI, worldJ];
+                    for (int i = 0; i < worldI; i++)
                     {
-                        int numRocks = 0;
-                        //Check 8 directions and self
-                        //Self:
-                        if(dungeonGrid[i,j] == DungeonTiles.ROCK)
+                        for (int j = 0; j < worldJ; j++)
                         {
-                            numRocks += 1;
-                        }
-                        //Topleft
-                        if(i-1 < 0 || j-1 < 0)
-                        {
-                            numRocks += 1;
-                        }
-                        else if (dungeonGrid[i - 1, j - 1] == DungeonTiles.ROCK)
-                        {
-                            numRocks += 1;
-                        }
-                        //Top
-                        if(j-1 <0)
-                        {
-                            numRocks += 1;
-                        }
-                        else if(dungeonGrid[i, j - 1] == DungeonTiles.ROCK)
-                        {
-                            numRocks += 1;
-                        }
-                        //Topright
-                        if(i+1 > worldI-1 || j-1 < 0)
-                        {
-                            numRocks += 1;
-                        }
-                        else if(dungeonGrid[i + 1, j - 1] == DungeonTiles.ROCK)
-                        {
-                            numRocks += 1;
-                        }
-                        //Left
-                        if(i-1 < 0)
-                        {
-                            numRocks += 1;
-                        }
-                        else if(dungeonGrid[i - 1, j] == DungeonTiles.ROCK)
-                        {
-                            numRocks += 1;
-                        }
-                        //Right
-                        if(i+1 > worldI-1)
-                        {
-                            numRocks += 1;
-                        }
-                        else if (dungeonGrid[i + 1, j] == DungeonTiles.ROCK)
-                        {
-                            numRocks += 1;
-                        }
-                        //Bottomleft
-                        if(i-1 < 0 || j + 1 > worldJ-1)
-                        {
-                            numRocks += 1;
-                        }
-                        else if(dungeonGrid[i - 1, j + 1] == DungeonTiles.ROCK)
-                        {
-                            numRocks += 1;
-                        }
-                        //Bottom
-                        if(j+1 > worldJ-1)
-                        {
-                            numRocks += 1;
-                        }
-                        else if(dungeonGrid[i, j + 1] == DungeonTiles.ROCK)
-                        {
-                            numRocks += 1;
-                        }
-                        //BottomRight
-                        if(i+1 > worldI-1 || j+1 > worldJ-1)
-                        {
-                            numRocks += 1;
-                        }
-                        else if(dungeonGrid[i + 1, j + 1] == DungeonTiles.ROCK)
-                        {
-                            numRocks += 1;
-                        }
+                            int numRocks = 0;
+                            int farRocks = 0;
+                            //Check 8 directions and self
+                            //Self:
+                            if (dungeonGrid[i, j] == DungeonTiles.ROCK)
+                            {
+                                numRocks += 1;
+                            }
+                            //Topleft
+                            if (i - 1 < 0 || j - 1 < 0)
+                            {
+                                numRocks += 1;
+                            }
+                            else if (dungeonGrid[i - 1, j - 1] == DungeonTiles.ROCK)
+                            {
+                                numRocks += 1;
+                            }
+                            //Top
+                            if (j - 1 < 0)
+                            {
+                                numRocks += 1;
+                            }
+                            else if (dungeonGrid[i, j - 1] == DungeonTiles.ROCK)
+                            {
+                                numRocks += 1;
+                            }
+                            //Topright
+                            if (i + 1 > worldI - 1 || j - 1 < 0)
+                            {
+                                numRocks += 1;
+                            }
+                            else if (dungeonGrid[i + 1, j - 1] == DungeonTiles.ROCK)
+                            {
+                                numRocks += 1;
+                            }
+                            //Left
+                            if (i - 1 < 0)
+                            {
+                                numRocks += 1;
+                            }
+                            else if (dungeonGrid[i - 1, j] == DungeonTiles.ROCK)
+                            {
+                                numRocks += 1;
+                            }
+                            //Right
+                            if (i + 1 > worldI - 1)
+                            {
+                                numRocks += 1;
+                            }
+                            else if (dungeonGrid[i + 1, j] == DungeonTiles.ROCK)
+                            {
+                                numRocks += 1;
+                            }
+                            //Bottomleft
+                            if (i - 1 < 0 || j + 1 > worldJ - 1)
+                            {
+                                numRocks += 1;
+                            }
+                            else if (dungeonGrid[i - 1, j + 1] == DungeonTiles.ROCK)
+                            {
+                                numRocks += 1;
+                            }
+                            //Bottom
+                            if (j + 1 > worldJ - 1)
+                            {
+                                numRocks += 1;
+                            }
+                            else if (dungeonGrid[i, j + 1] == DungeonTiles.ROCK)
+                            {
+                                numRocks += 1;
+                            }
+                            //BottomRight
+                            if (i + 1 > worldI - 1 || j + 1 > worldJ - 1)
+                            {
+                                numRocks += 1;
+                            }
+                            else if (dungeonGrid[i + 1, j + 1] == DungeonTiles.ROCK)
+                            {
+                                numRocks += 1;
+                            }
+
+                            //Check 8 directions for far rocks
+
+                            //Topleft
+                            if (i - 2 < 0 || j - 2 < 0)
+                            {
+                                farRocks += 1;
+                            }
+                            else if (dungeonGrid[i - 2, j - 2] == DungeonTiles.ROCK)
+                            {
+                                farRocks += 1;
+                            }
+                            //Top
+                            if (j - 2 < 0)
+                            {
+                                farRocks += 1;
+                            }
+                            else if (dungeonGrid[i, j - 2] == DungeonTiles.ROCK)
+                            {
+                                farRocks += 1;
+                            }
+                            //Topright
+                            if (i + 2 > worldI - 2 || j - 2 < 0)
+                            {
+                                farRocks += 1;
+                            }
+                            else if (dungeonGrid[i + 2, j - 2] == DungeonTiles.ROCK)
+                            {
+                                farRocks += 1;
+                            }
+                            //Left
+                            if (i - 2 < 0)
+                            {
+                                farRocks += 1;
+                            }
+                            else if (dungeonGrid[i - 2, j] == DungeonTiles.ROCK)
+                            {
+                                farRocks += 1;
+                            }
+                            //Right
+                            if (i + 2 > worldI - 2)
+                            {
+                                farRocks += 1;
+                            }
+                            else if (dungeonGrid[i + 2, j] == DungeonTiles.ROCK)
+                            {
+                                farRocks += 1;
+                            }
+                            //Bottomleft
+                            if (i - 2 < 0 || j + 2 > worldJ - 2)
+                            {
+                                farRocks += 1;
+                            }
+                            else if (dungeonGrid[i - 2, j + 2] == DungeonTiles.ROCK)
+                            {
+                                farRocks += 1;
+                            }
+                            //Bottom
+                            if (j + 2 > worldJ - 2)
+                            {
+                                farRocks += 1;
+                            }
+                            else if (dungeonGrid[i, j + 2] == DungeonTiles.ROCK)
+                            {
+                                farRocks += 1;
+                            }
+                            //BottomRight
+                            if (i + 2 > worldI - 2 || j + 2 > worldJ - 2 || dungeonGrid[i + 2, j + 2] == DungeonTiles.ROCK)
+                            {
+                                farRocks += 1;
+                            }
+                            else if (dungeonGrid[i + 2, j + 2] == DungeonTiles.ROCK)
+                            {
+                                farRocks += 1;
+                            }
 
 
-                        if(numRocks >= 5 || i == 0 || j == 0 || i == worldI-1 || j == worldJ-1)
-                        {
-                            dungeonGrid[i, j] = DungeonTiles.ROCK;
+                            if (numRocks >= 5 || i == 0 || j == 0 || i == worldI - 1 || j == worldJ - 1 || (z <= 3 && numRocks + farRocks <= 2))
+                            {
+                                newMap[i, j] = DungeonTiles.ROCK;
+                            }
+                            else
+                            {
+                                newMap[i, j] = DungeonTiles.FLOOR;
+                            }
                         }
-                        else
+                    }
+                    Array.Copy(newMap, dungeonGrid, worldJ * worldI);
+                }
+
+                int fillX = 0;
+                int fillY = 0;
+                do
+                {
+                    fillX = random.Next(0, worldI);
+                    fillY = random.Next(0, worldJ);
+                } while ((dungeonGrid[fillX, fillY] & DungeonTiles.FLOOR) != DungeonTiles.FLOOR);
+
+                FloodFill(fillX, fillY);
+
+                double connectedTiles = 0.0;
+                double totalTiles = 0.0;
+                for(int i = 0; i < worldI; i++)
+                {
+                    for(int j = 0; j < worldJ; j++)
+                    {
+                        if((dungeonGrid[i, j] & DungeonTiles.FLOOR) == DungeonTiles.FLOOR)
                         {
-                            dungeonGrid[i, j] = DungeonTiles.FLOOR;
+                            totalTiles += 1.0;
+                            if ((dungeonGrid[i, j] & DungeonTiles.VISITED) == DungeonTiles.VISITED)
+                            {
+                                connectedTiles += 1.0;
+                            }
                         }
                     }
                 }
+
+                if(connectedTiles / totalTiles >= .90)
+                {
+                    for (int i = 0; i < worldI; i++)
+                    {
+                        for (int j = 0; j < worldJ; j++)
+                        {
+                            if ((dungeonGrid[i, j] & DungeonTiles.FLOOR) == DungeonTiles.FLOOR && (dungeonGrid[i, j] & DungeonTiles.VISITED) != DungeonTiles.VISITED)
+                            {
+                                dungeonGrid[i, j] = DungeonTiles.WALL;
+                            }
+                        }
+                    }
+                    acceptable = true;
+                }
+
             }
 
-            ////Create random rooms
-            //while(tries < attemptLimit)
-            //{
+        }
 
-            //    var height = random.Next(minSize, maxSize);
-            //    var width = random.Next(minSize, maxSize);
-            //    var posX = random.Next(0, worldI-width);
-            //    var posY = random.Next(0, worldJ-height);
+        private void FloodFill(int x, int y)
+        {
+            if (x < 0 || y < 0 || x >= worldI || y >= worldJ)
+            {
+                return;
+            }
+            if((dungeonGrid[x,y] & DungeonTiles.VISITED) == DungeonTiles.VISITED)
+            {
+                return;
+            }
+            if ((dungeonGrid[x, y] & DungeonTiles.WALL) == DungeonTiles.WALL)
+            {
+                return;
+            }
 
-            //    //Check if that room collides with anything
-            //    bool collide = false;
-            //    for(int i = posX; i < posX + width; i++)
-            //    {
-            //        for(int j = posY; j < posY + height; j++)
-            //        {
-            //            if((dungeonGrid[i,j] & DungeonTiles.ROCK) != DungeonTiles.ROCK)
-            //            {
-            //                collide = true;
-            //            }
-            //        }
-            //    }
-
-            //    if(!collide)
-            //    {
-            //        for (int i = posX; i < posX+width; i++)
-            //        {
-            //            for (int j = posY; j < posY+height; j++)
-            //            {
-            //                dungeonGrid[i, j] =  (j == posY || j == posY+height-1 || i == posX || i == posX+width-1)  ?  DungeonTiles.WALL : DungeonTiles.FLOOR;
-            //            }
-            //        }
-            //    }
-            //    else
-            //    {
-            //        tries += 1;
-            //    }
-            //}
+            Queue<Vector2> floodQueue = new Queue<Vector2>();
+            floodQueue.Enqueue(new Vector2(x, y));
+            
+            while(floodQueue.Count > 0)
+            {
+                Vector2 pos = floodQueue.Dequeue();
+                if((dungeonGrid[(int)pos.X, (int)pos.Y] & DungeonTiles.FLOOR) == DungeonTiles.FLOOR && (dungeonGrid[(int)pos.X, (int)pos.Y] & DungeonTiles.VISITED) != DungeonTiles.VISITED)
+                {
+                    x = (int)pos.X;
+                    y = (int)pos.Y;
+                    dungeonGrid[(int)pos.X, (int)pos.Y] = dungeonGrid[(int)pos.X, (int)pos.Y] | DungeonTiles.VISITED;
+                    HashSet<Vector2> toAdd = new HashSet<Vector2>();
+                    toAdd.Add(new Vector2(x + 1, y + 1));
+                    toAdd.Add(new Vector2(x, y + 1));
+                    toAdd.Add(new Vector2(x + 1, y));
+                    toAdd.Add(new Vector2(x - 1, y - 1));
+                    toAdd.Add(new Vector2(x - 1, y));
+                    toAdd.Add(new Vector2(x, y - 1));
+                    toAdd.Add(new Vector2(x + 1, y - 1));
+                    toAdd.Add(new Vector2(x - 1, y + 1));
+                    foreach(var vector in toAdd)
+                    {
+                        if(!floodQueue.Contains(vector))
+                        {
+                            floodQueue.Enqueue(vector);
+                        }
+                    }
+                    toAdd.Clear();
+                }
+            }
+            
         }
 
         private void DrawDungeon(SpriteBatch spriteBatch, GraphicsDeviceManager graphics, Camera camera)
@@ -253,15 +385,15 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
             {
                 for(int j = 0; j < worldJ; j++)
                 {
-                    if ((dungeonGrid[i, j] & DungeonTiles.FLOOR) == DungeonTiles.FLOOR)
+                    if ((dungeonGrid[i, j] & DungeonTiles.FLOOR) == DungeonTiles.FLOOR && (dungeonGrid[i, j] & DungeonTiles.VISITED) != DungeonTiles.VISITED)
                     {
                         Rectangle tile = new Rectangle(i * cellSize, j * cellSize, cellSize, cellSize);
-                        spriteBatch.Draw(floor, tile, Color.Green);
+                        spriteBatch.Draw(floor, tile, Color.DarkBlue);
                     }
-                    if ((dungeonGrid[i, j] & DungeonTiles.ROCK) == DungeonTiles.ROCK)
+                    if ((dungeonGrid[i, j] & DungeonTiles.VISITED) == DungeonTiles.VISITED)
                     {
                         Rectangle tile = new Rectangle(i * cellSize, j * cellSize, cellSize, cellSize);
-                        spriteBatch.Draw(floor, tile, Color.Blue);
+                        spriteBatch.Draw(floor, tile, Color.DarkGreen);
                     }
                 }
             }
