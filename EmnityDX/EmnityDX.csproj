@@ -51,7 +51,7 @@
     <Compile Include="Objects\Components\Sprite.cs" />
     <Compile Include="Objects\Components\Statistics.cs" />
     <Compile Include="Objects\Components\Velocity.cs" />
-    <Compile Include="Objects\LevelData\PlayingStateLevels\Dungeon.cs" />
+    <Compile Include="Objects\LevelData\PlayingStateLevels\Caves.cs" />
     <Compile Include="Objects\LevelData\PlayingStateLevels\RandomGeneration.cs" />
     <Compile Include="Objects\LevelData\PlayingStateLevels\TestLevel.cs" />
     <Compile Include="Objects\States\MenuState.cs" />

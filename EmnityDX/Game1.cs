@@ -57,7 +57,7 @@ namespace EmnityDX
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            _states.Enqueue(new PlayingState(new Dungeon(100,50), _camera, Content, graphics));
+            _states.Enqueue(new PlayingState(new Caves(100,50), _camera, Content, graphics));
         }
 
         /// <summary>
