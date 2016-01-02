@@ -38,11 +38,12 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Engine\Ancillary\DungeonRoom.cs" />
     <Compile Include="Engine\Camera.cs" />
     <Compile Include="Engine\Component.cs" />
     <Compile Include="Engine\Entity.cs" />
     <Compile Include="Engine\Level.cs" />
+    <Compile Include="Engine\ProceduralGeneration\CaveGeneration.cs" />
+    <Compile Include="Engine\ProceduralGeneration\DungeonTiles.cs" />
     <Compile Include="Engine\State.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="Objects\Components\Health.cs" />
@@ -52,12 +53,7 @@
     <Compile Include="Objects\Components\Statistics.cs" />
     <Compile Include="Objects\Components\Velocity.cs" />
     <Compile Include="Objects\LevelData\PlayingStateLevels\Caves.cs" />
-    <Compile Include="Objects\LevelData\PlayingStateLevels\RandomGeneration.cs" />
-    <Compile Include="Objects\LevelData\PlayingStateLevels\TestLevel.cs" />
-    <Compile Include="Objects\States\MenuState.cs" />
-    <Compile Include="Objects\States\PauseState.cs" />
     <Compile Include="Objects\States\PlayingState.cs" />
-    <Compile Include="Objects\States\TitleState.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

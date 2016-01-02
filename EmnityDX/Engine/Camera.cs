@@ -13,6 +13,7 @@ namespace EmnityDX.Engine
         public Vector3 Scale { get; set; }
         public Vector2 Position { get; set;} 
         public Rectangle Bounds { get; set; }
+        public Vector2 Target { get; set; }
 
         public Camera(Vector2 position, Vector2 origin, float rotation, Vector2 scale, GraphicsDeviceManager graphics)
         {
@@ -22,7 +23,7 @@ namespace EmnityDX.Engine
         public void ResetCamera(Vector2 position, Vector2 origin, float rotation, Vector2 scale, GraphicsDeviceManager graphics)
         {
             Rotation = rotation;
-            Scale = ResetScreenScale(graphics, scale);
+            ResetScreenScale(graphics, scale);
             Position = position;
             Bounds = graphics.GraphicsDevice.Viewport.Bounds;
         }
@@ -31,7 +32,8 @@ namespace EmnityDX.Engine
         {
             var scaleX = (float)graphics.GraphicsDevice.Viewport.Width / screenScale.X;
             var scaleY = (float)graphics.GraphicsDevice.Viewport.Height / screenScale.Y;
-            return Scale = new Vector3(scaleX, scaleY, 1.0f);
+            Scale = new Vector3(scaleX, scaleY, 1.0f);
+            return Scale;
         }
 
         public Matrix GetMatrix()
