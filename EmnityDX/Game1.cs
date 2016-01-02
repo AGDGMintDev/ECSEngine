@@ -1,5 +1,7 @@
 ﻿
 using EmnityDX.Engine;
+using EmnityDX.Engine.ProceduralGeneration;
+using EmnityDX.Objects.InputHandlers;
 using EmnityDX.Objects.LevelData;
 using EmnityDX.Objects.LevelData.PlayingStateLevels;
 using EmnityDX.Objects.States;
@@ -57,7 +59,8 @@ namespace EmnityDX
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            _states.Enqueue(new PlayingState(new Caves(75, 125), _camera, Content, graphics));
+            GeneratedLevel firstLevel = new GeneratedLevel(new CaveGeneration(), 75, 125, new GeneratedDungeonInputHandler());
+            _states.Enqueue(new PlayingState(firstLevel, _camera, Content, graphics));
         }
 
         /// <summary>

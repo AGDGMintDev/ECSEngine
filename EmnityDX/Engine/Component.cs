@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EmnityDX.Objects.Components;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,5 +28,63 @@ namespace EmnityDX.Engine
         public const Component DRAWABLE_LABEL = Component.COMPONENT_POSITION | Component.COMPONENT_LABEL;
         public const Component DRAWABLE_HEALTH = Component.COMPONENT_POSITION | Component.COMPONENT_HEALTH | Component.COMPONENT_LABEL;
         public const Component DRAWABLE_ITEM = Component.COMPONENT_SPRITE | Component.COMPONENT_POSITION | Component.COMPONENT_ISCOLLIDABLE | Component.COMPONENT_STATISTICS | Component.COMPONENT_LABEL;
+    }
+
+    public class LevelComponents
+    {
+        public List<Entity> Entities { get; private set; }
+        public Dictionary<Guid, Health> HealthComponents { get; private set; }
+        public Dictionary<Guid, Label> LabelComponents { get; private set; }
+        public Dictionary<Guid, Position> PositionComponents { get; private set; }
+        public Dictionary<Guid, Velocity> VelocityComponents { get; private set; }
+        public Dictionary<Guid, Statistics> StatisticsComponents { get; private set; }
+        public Dictionary<Guid, Sprite> SpriteComponents { get; private set; }
+        public List<Guid> EntitiesToDelete { get; private set; }
+
+        public LevelComponents()
+        {
+            Entities = new List<Entity>();
+            HealthComponents = new Dictionary<Guid, Health>();
+            LabelComponents = new Dictionary<Guid, Label>();
+            PositionComponents = new Dictionary<Guid, Position>();
+            VelocityComponents = new Dictionary<Guid, Velocity>();
+            SpriteComponents = new Dictionary<Guid, Sprite>();
+            StatisticsComponents = new Dictionary<Guid, Statistics>();
+            EntitiesToDelete = new List<Guid>();
+        }
+
+        ~LevelComponents()
+        {
+            Entities.Clear();
+            Entities.Clear();
+            HealthComponents.Clear();
+            LabelComponents.Clear();
+            PositionComponents.Clear();
+            VelocityComponents.Clear();
+            SpriteComponents.Clear();
+            StatisticsComponents.Clear();
+            EntitiesToDelete.Clear();
+        }
+
+        public Guid CreateEntity()
+        {
+            Entity newEntity = new Entity();
+            this.Entities.Add(newEntity);
+            return newEntity.Id;
+        }
+
+        public void DestroyEntity(Guid id)
+        {
+            Entity removal = this.Entities.Where(x => x.Id == id).FirstOrDefault();
+            if (removal != null)
+            {
+                Entities.Remove(removal);
+                HealthComponents.Remove(id);
+                LabelComponents.Remove(id);
+                PositionComponents.Remove(id);
+                VelocityComponents.Remove(id);
+                SpriteComponents.Remove(id);
+            }
+        }
     }
 }

@@ -6,13 +6,15 @@ using System.Text;
 
 namespace EmnityDX.Engine.ProceduralGeneration
 {
-    public static class CaveGeneration
+    public class CaveGeneration : IGenerationAlgorithm
     {
-        public static void GenerateDungeon(ref DungeonTiles[,] dungeonGrid, int worldI, int worldJ, Random random)
+        public Vector2 GenerateDungeon(ref DungeonTiles[,] dungeonGrid, int worldMin, int worldMax, Random random)
         {
+            int worldI = random.Next(worldMin, worldMax);
+            int worldJ = random.Next(worldMin, worldMax);
+
             dungeonGrid = new DungeonTiles[worldI, worldJ];
 
-                
             bool acceptable = false;
 
             while (!acceptable)
@@ -213,7 +215,7 @@ namespace EmnityDX.Engine.ProceduralGeneration
                     fillY = random.Next(0, worldJ);
                 } while ((dungeonGrid[fillX, fillY] & DungeonTiles.FLOOR) != DungeonTiles.FLOOR);
 
-                FloodFill(fillX, fillY, worldI, worldJ, ref dungeonGrid);
+                this.FloodFill(fillX, fillY, worldI, worldJ, ref dungeonGrid);
 
                 double connectedTiles = 0.0;
                 double totalTiles = 0.0;
@@ -249,9 +251,10 @@ namespace EmnityDX.Engine.ProceduralGeneration
 
             }
 
+            return new Vector2(worldI,worldJ);
         }
 
-        private static void FloodFill(int x, int y, int worldI, int worldJ, ref DungeonTiles[,] dungeonGrid)
+        private void FloodFill(int x, int y, int worldI, int worldJ, ref DungeonTiles[,] dungeonGrid)
         {
             if (x < 0 || y < 0 || x >= worldI || y >= worldJ)
             {

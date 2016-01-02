@@ -13,7 +13,7 @@ namespace EmnityDX.Objects.States
 {
     public class PlayingState : State
     {
-        public PlayingState(Level level, Camera camera, ContentManager content, GraphicsDeviceManager graphics, MouseState mouseState = new MouseState(), GamePadState gamePadState = new GamePadState(), KeyboardState keyboardState = new KeyboardState()) 
+        public PlayingState(ILevel level, Camera camera, ContentManager content, GraphicsDeviceManager graphics, MouseState mouseState = new MouseState(), GamePadState gamePadState = new GamePadState(), KeyboardState keyboardState = new KeyboardState()) 
             : base(level, camera, content, graphics, mouseState, gamePadState, keyboardState)
         {
 

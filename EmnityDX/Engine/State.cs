@@ -16,10 +16,10 @@ namespace EmnityDX.Engine
         protected MouseState PrevMouseState;
         protected GamePadState PrevGamepadState;
         protected KeyboardState PrevKeyboardState;
-        protected Level CurrentLevel;
+        protected ILevel CurrentLevel;
         protected GraphicsDeviceManager Graphics;
 
-        public State(Level level, Camera camera, ContentManager content, GraphicsDeviceManager graphics, MouseState mouseState = new MouseState(), GamePadState gamePadState = new GamePadState(), KeyboardState keyboardState = new KeyboardState())
+        public State(ILevel level, Camera camera, ContentManager content, GraphicsDeviceManager graphics, MouseState mouseState = new MouseState(), GamePadState gamePadState = new GamePadState(), KeyboardState keyboardState = new KeyboardState())
         {
             this.Content = new ContentManager(content.ServiceProvider, "Content");
             Graphics = graphics;
@@ -37,7 +37,7 @@ namespace EmnityDX.Engine
         public virtual State UpdateContent(GameTime gameTime, Camera camera)
         {
 
-            Level nextLevel = CurrentLevel;
+            ILevel nextLevel = CurrentLevel;
             nextLevel = CurrentLevel.UpdateLevel(gameTime, Content, Graphics, PrevKeyboardState, PrevMouseState, PrevGamepadState, camera);
             if (nextLevel != CurrentLevel && nextLevel != null)
             {
@@ -59,7 +59,7 @@ namespace EmnityDX.Engine
             CurrentLevel.DrawLevel(spriteBatch, Graphics, camera);
         }
 
-        protected void SetLevel(Level level, Camera camera)
+        protected void SetLevel(ILevel level, Camera camera)
         {
             if (Content != null && level != null)
             {

@@ -9,13 +9,13 @@ namespace EmnityDX.Engine.ProceduralGeneration
     public enum DungeonTiles
     {
         NONE = 0,
-        FLOOR = 1 << 0,
-        DOOR = 1 << 1,
-        UNVISITED = 1 << 2,
-        VISITED = 1 << 3,
-        WALL = 1 << 4,
-        FIRST_ROOM = 1 << 5,
-        ROCK = 1 << 6,
-        FOUND = 1 << 7
+        UNVISITED = 1 << 0,
+        VISITED = 1 << 1,
+        WALL = 1 << 2,
+        ROCK = 1 << 3,
+        FLOOR = 1 << 4,
+        DOOR = 1 << 5,
+
+
     }
 }
