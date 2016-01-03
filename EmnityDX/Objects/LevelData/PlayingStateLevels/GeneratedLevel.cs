@@ -45,7 +45,7 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
         #region Load Logic
         public void LoadLevel(ContentManager content, GraphicsDeviceManager graphics, Camera camera)
         {
-            floor = content.Load<Texture2D>("Sprites/Ball");
+            floor = content.Load<Texture2D>("Sprites/ball");
             CreatePlayer(content, graphics, camera);
         }
 
@@ -82,6 +82,18 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
             if (Keyboard.GetState().IsKeyDown(Keys.Enter) && !prevKeyboardState.IsKeyDown(Keys.Enter))
             {
                 nextLevel = new GeneratedLevel(new CaveGeneration(),75,125, new GeneratedDungeonInputHandler());
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.RightShift) && !prevKeyboardState.IsKeyDown(Keys.RightShift))
+            {
+                nextLevel = new GeneratedLevel(new CaveArenaGeneration(), 75, 100, new GeneratedDungeonInputHandler());
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.RightControl) && !prevKeyboardState.IsKeyDown(Keys.RightControl))
+            {
+                nextLevel = new GeneratedLevel(new RuinsGeneration(), 75, 225, new GeneratedDungeonInputHandler());
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.RightAlt) && !prevKeyboardState.IsKeyDown(Keys.RightAlt))
+            {
+                nextLevel = new GeneratedLevel(new RuinsArenaGeneration(), 75, 300, new GeneratedDungeonInputHandler());
             }
             if (Keyboard.GetState().IsKeyDown(Keys.PageDown))
             {
@@ -125,10 +137,15 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
             {
                 for (int j = 0; j < (int)dungeonDimensions.Y; j++)
                 {
-                    if ((dungeonGrid[i, j] & DungeonTiles.VISITED) == DungeonTiles.VISITED)
+                    if ((dungeonGrid[i, j] & DungeonTiles.FLOOR) == DungeonTiles.FLOOR)
                     {
                         Rectangle tile = new Rectangle(i * cellSize, j * cellSize, cellSize, cellSize);
                         spriteBatch.Draw(floor, tile, Color.DarkGreen);
+                    }
+                    if ((dungeonGrid[i, j] & DungeonTiles.WALL) == DungeonTiles.WALL)
+                    {
+                        Rectangle tile = new Rectangle(i * cellSize, j * cellSize, cellSize, cellSize);
+                        spriteBatch.Draw(floor, tile, Color.DarkViolet);
                     }
                 }
             }

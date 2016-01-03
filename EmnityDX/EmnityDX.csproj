@@ -43,7 +43,10 @@
     <Compile Include="Engine\Entity.cs" />
     <Compile Include="Engine\ILevel.cs" />
     <Compile Include="Engine\IUserInputHandler.cs" />
+    <Compile Include="Engine\ProceduralGeneration\CaveArenaGeneration.cs" />
     <Compile Include="Engine\ProceduralGeneration\CaveGeneration.cs" />
+    <Compile Include="Engine\ProceduralGeneration\RuinsArenaGeneration.cs" />
+    <Compile Include="Engine\ProceduralGeneration\RuinsGeneration.cs" />
     <Compile Include="Engine\ProceduralGeneration\DungeonTiles.cs" />
     <Compile Include="Engine\ProceduralGeneration\IGenerationAlgorithm.cs" />
     <Compile Include="Engine\State.cs" />

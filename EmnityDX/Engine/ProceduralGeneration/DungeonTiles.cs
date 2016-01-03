@@ -15,7 +15,6 @@ namespace EmnityDX.Engine.ProceduralGeneration
         ROCK = 1 << 3,
         FLOOR = 1 << 4,
         DOOR = 1 << 5,
-
-
+        SHOP_FLOOR = 1 << 6
     }
 }
