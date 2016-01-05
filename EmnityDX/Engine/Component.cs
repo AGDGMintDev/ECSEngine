@@ -53,19 +53,6 @@ namespace EmnityDX.Engine
             EntitiesToDelete = new List<Guid>();
         }
 
-        ~LevelComponents()
-        {
-            Entities.Clear();
-            Entities.Clear();
-            HealthComponents.Clear();
-            LabelComponents.Clear();
-            PositionComponents.Clear();
-            VelocityComponents.Clear();
-            SpriteComponents.Clear();
-            StatisticsComponents.Clear();
-            EntitiesToDelete.Clear();
-        }
-
         public Guid CreateEntity()
         {
             Entity newEntity = new Entity();
