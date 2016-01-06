@@ -16,10 +16,17 @@ namespace EmnityDX.Objects.InputHandlers
             KeyboardState prevKeyboardState, MouseState prevMouseState, GamePadState prevGamepadState, Camera camera, ref DungeonTiles[,] dungeonGrid)
         {
             PlayerMovement(graphics, gameTime, camera, prevKeyboardState, levelComponents, ref dungeonGrid);
+
+
+            if (Keyboard.GetState().IsKeyDown(Keys.PageDown))
+            {
+                camera.ResetScreenScale(graphics, new Vector2(3968 * 2, 2232 * 2));
+            }
         }
 
         private void PlayerMovement(GraphicsDeviceManager graphics, GameTime gameTime, Camera camera, KeyboardState prevKey, LevelComponents levelComponents, ref DungeonTiles[,] dungeonGrid)
         {
+            Random random = new Random();
             var delta = (float)gameTime.ElapsedGameTime.TotalSeconds;
             foreach (Entity entity in levelComponents.Entities)
             {

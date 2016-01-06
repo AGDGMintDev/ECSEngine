@@ -26,6 +26,7 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
         private IUserInputHandler inputHandler;
         private const int cellSize = 40;
         private Random random = new Random();
+        private float opacity = 0.1f;  //Follow the opacity and NEWLY_FOUND tiles for fade.
         #endregion
 
         #region Constructor/Destructor
@@ -74,6 +75,7 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
             ShowTiles();
             inputHandler.HandleInput(levelComponents, graphics, gameTime, prevKeyboardState, prevMouseState, prevGamepadState, camera, ref dungeonGrid);
             UpdateCamera(camera, gameTime);
+            #region Debug changing levels
             if (Keyboard.GetState().IsKeyDown(Keys.Enter) && !prevKeyboardState.IsKeyDown(Keys.Enter))
             {
                 nextLevel = new GeneratedLevel(new CaveGeneration(),75,125, new GeneratedDungeonInputHandler());
@@ -90,10 +92,7 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
             {
                 nextLevel = new GeneratedLevel(new RuinsArenaGeneration(), 75, 300, new GeneratedDungeonInputHandler());
             }
-            if (Keyboard.GetState().IsKeyDown(Keys.PageDown))
-            {
-                camera.ResetScreenScale(graphics, new Vector2(3968 * 2, 2232 * 2));
-            }
+            #endregion
             return nextLevel;
         }
 
@@ -108,15 +107,6 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                 for(int j = 0; j < dungeonDimensions.Y; j++)
                 {
                     dungeonGrid[i, j] &= ~DungeonTiles.IN_RANGE;
-                    //OCT TESTS
-                    dungeonGrid[i, j] &= ~DungeonTiles.OCT_1;
-                    dungeonGrid[i, j] &= ~DungeonTiles.OCT_8;
-                    dungeonGrid[i, j] &= ~DungeonTiles.OCT_2;
-                    dungeonGrid[i, j] &= ~DungeonTiles.OCT_3;
-                    dungeonGrid[i, j] &= ~DungeonTiles.OCT_4;
-                    dungeonGrid[i, j] &= ~DungeonTiles.OCT_5;
-                    dungeonGrid[i, j] &= ~DungeonTiles.OCT_6;
-                    dungeonGrid[i, j] &= ~DungeonTiles.OCT_7;
                     dungeonGrid[i, j] &= ~DungeonTiles.BLOCKED_RANGE;
                 }
             }
@@ -156,7 +146,6 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                         {
                             if ((dungeonGrid[(int)position.X - i, (int)position.Y - j] & DungeonTiles.WALL) == DungeonTiles.WALL)
                             {
-                                //BlockTilesOctantOne(new Vector2((int)position.X - i, (int)position.Y - j), i, j, sightRange);
                                 Vector2 blockedPosition = new Vector2((int)position.X - i, (int)position.Y - j);
                                 for (int l = 0; l <= sightRange - z; l++)
                                 {
@@ -171,9 +160,13 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
 
                             }
 
-                            if ((dungeonGrid[(int)position.X - i, (int)position.Y - j] & DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_1) != (DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_1))
+                            if ((dungeonGrid[(int)position.X - i, (int)position.Y - j] & DungeonTiles.BLOCKED_RANGE) != (DungeonTiles.BLOCKED_RANGE))
                             {
-                                dungeonGrid[(int)position.X - i, (int)position.Y - j] |= DungeonTiles.FOUND | DungeonTiles.OCT_1 | DungeonTiles.IN_RANGE;
+                                if ((dungeonGrid[(int)position.X - i, (int)position.Y - j] & DungeonTiles.FOUND) != (DungeonTiles.FOUND))
+                                {
+                                    dungeonGrid[(int)position.X - i, (int)position.Y - j] |= DungeonTiles.NEWLY_FOUND;
+                                }
+                                dungeonGrid[(int)position.X - i, (int)position.Y - j] |= DungeonTiles.FOUND | DungeonTiles.IN_RANGE;
                             }
                         }
                     }
@@ -191,7 +184,6 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                         {
                             if ((dungeonGrid[(int)position.X + i, (int)position.Y - j] & DungeonTiles.WALL) == DungeonTiles.WALL)
                             {
-                                //BlockTilesOctantOne(new Vector2((int)position.X - i, (int)position.Y - j), i, j, sightRange);
                                 Vector2 blockedPosition = new Vector2((int)position.X + i, (int)position.Y - j);
                                 for (int l = 0; l <= sightRange - z; l++)
                                 {
@@ -199,15 +191,19 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                                     {
                                         if (blockedPosition.X + m < dungeonDimensions.X && blockedPosition.Y - l >= 0 && (new Vector2((int)blockedPosition.X + m, (int)blockedPosition.Y - l) != blockedPosition))
                                         {
-                                            dungeonGrid[(int)blockedPosition.X + m, (int)blockedPosition.Y - l] |= DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_2;
+                                            dungeonGrid[(int)blockedPosition.X + m, (int)blockedPosition.Y - l] |= DungeonTiles.BLOCKED_RANGE;
                                         }
                                     }
                                 }
 
                             }
-                            if ((dungeonGrid[(int)position.X + i, (int)position.Y - j] & DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_2) != (DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_2))
+                            if ((dungeonGrid[(int)position.X + i, (int)position.Y - j] & DungeonTiles.BLOCKED_RANGE) != (DungeonTiles.BLOCKED_RANGE))
                             {
-                                dungeonGrid[(int)position.X + i, (int)position.Y - j] |= DungeonTiles.FOUND | DungeonTiles.OCT_2 | DungeonTiles.IN_RANGE;
+                                if ((dungeonGrid[(int)position.X + i, (int)position.Y - j] & DungeonTiles.FOUND) != (DungeonTiles.FOUND))
+                                {
+                                    dungeonGrid[(int)position.X + i, (int)position.Y - j] |= DungeonTiles.NEWLY_FOUND;
+                                }
+                                dungeonGrid[(int)position.X + i, (int)position.Y - j] |= DungeonTiles.FOUND | DungeonTiles.IN_RANGE;
                             }
                         }
                     }
@@ -225,7 +221,6 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                         {
                             if ((dungeonGrid[(int)position.X + i, (int)position.Y - j] & DungeonTiles.WALL) == DungeonTiles.WALL)
                             {
-                                //BlockTilesOctantOne(new Vector2((int)position.X - i, (int)position.Y - j), i, j, sightRange);
                                 Vector2 blockedPosition = new Vector2((int)position.X + i, (int)position.Y - j);
                                 for (int m = 0; m <= sightRange - z; m++)
                                 {
@@ -233,15 +228,19 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                                     {
                                         if (blockedPosition.X + m < dungeonDimensions.X && blockedPosition.Y - l >= 0 && (new Vector2((int)blockedPosition.X + m, (int)blockedPosition.Y - l) != blockedPosition))
                                         {
-                                            dungeonGrid[(int)blockedPosition.X + m, (int)blockedPosition.Y - l] |= DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_3;
+                                            dungeonGrid[(int)blockedPosition.X + m, (int)blockedPosition.Y - l] |= DungeonTiles.BLOCKED_RANGE;
                                         }
                                     }
                                 }
 
                             }
-                            if ((dungeonGrid[(int)position.X + i, (int)position.Y - j] & DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_3) != (DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_3))
+                            if ((dungeonGrid[(int)position.X + i, (int)position.Y - j] & DungeonTiles.BLOCKED_RANGE) != (DungeonTiles.BLOCKED_RANGE))
                             {
-                                dungeonGrid[(int)position.X + i, (int)position.Y - j] |= DungeonTiles.FOUND | DungeonTiles.OCT_3 | DungeonTiles.IN_RANGE;
+                                if ((dungeonGrid[(int)position.X + i, (int)position.Y - j] & DungeonTiles.FOUND) != (DungeonTiles.FOUND))
+                                {
+                                    dungeonGrid[(int)position.X + i, (int)position.Y - j] |= DungeonTiles.NEWLY_FOUND;
+                                }
+                                dungeonGrid[(int)position.X + i, (int)position.Y - j] |= DungeonTiles.FOUND | DungeonTiles.IN_RANGE;
                             }
                         }
                     }
@@ -259,7 +258,6 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                         {
                             if ((dungeonGrid[(int)position.X + i, (int)position.Y + j] & DungeonTiles.WALL) == DungeonTiles.WALL)
                             {
-                                //BlockTilesOctantOne(new Vector2((int)position.X - i, (int)position.Y - j), i, j, sightRange);
                                 Vector2 blockedPosition = new Vector2((int)position.X + i, (int)position.Y + j);
                                 for (int m = 0; m <= sightRange - z; m++)
                                 {
@@ -267,15 +265,19 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                                     {
                                         if (blockedPosition.X + m < dungeonDimensions.X && blockedPosition.Y + l < dungeonDimensions.Y && (new Vector2((int)blockedPosition.X + m, (int)blockedPosition.Y + l) != blockedPosition))
                                         {
-                                            dungeonGrid[(int)blockedPosition.X + m, (int)blockedPosition.Y + l] |= DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_4;
+                                            dungeonGrid[(int)blockedPosition.X + m, (int)blockedPosition.Y + l] |= DungeonTiles.BLOCKED_RANGE;
                                         }
                                     }
                                 }
 
                             }
-                            if ((dungeonGrid[(int)position.X + i, (int)position.Y + j] & DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_4) != (DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_4))
+                            if ((dungeonGrid[(int)position.X + i, (int)position.Y + j] & DungeonTiles.BLOCKED_RANGE) != (DungeonTiles.BLOCKED_RANGE))
                             {
-                                dungeonGrid[(int)position.X + i, (int)position.Y + j] |= DungeonTiles.FOUND | DungeonTiles.OCT_4 | DungeonTiles.IN_RANGE;
+                                if ((dungeonGrid[(int)position.X + i, (int)position.Y + j] & DungeonTiles.FOUND) != (DungeonTiles.FOUND))
+                                {
+                                    dungeonGrid[(int)position.X + i, (int)position.Y + j] |= DungeonTiles.NEWLY_FOUND;
+                                }
+                                dungeonGrid[(int)position.X + i, (int)position.Y + j] |= DungeonTiles.FOUND | DungeonTiles.IN_RANGE;
                             }
                         }
                     }
@@ -293,7 +295,6 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                         {
                             if ((dungeonGrid[(int)position.X + i, (int)position.Y + j] & DungeonTiles.WALL) == DungeonTiles.WALL)
                             {
-                                //BlockTilesOctantOne(new Vector2((int)position.X - i, (int)position.Y - j), i, j, sightRange);
                                 Vector2 blockedPosition = new Vector2((int)position.X + i, (int)position.Y + j);
                                 for (int l = 0; l <= sightRange - z; l++)
                                 {
@@ -301,15 +302,19 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                                     {
                                         if (blockedPosition.X + m < dungeonDimensions.X && blockedPosition.Y + l < dungeonDimensions.Y && (new Vector2((int)blockedPosition.X + m, (int)blockedPosition.Y + l) != blockedPosition))
                                         {
-                                            dungeonGrid[(int)blockedPosition.X + m, (int)blockedPosition.Y + l] |= DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_2;
+                                            dungeonGrid[(int)blockedPosition.X + m, (int)blockedPosition.Y + l] |= DungeonTiles.BLOCKED_RANGE;
                                         }
                                     }
                                 }
 
                             }
-                            if ((dungeonGrid[(int)position.X + i, (int)position.Y + j] & DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_5) != (DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_5))
+                            if ((dungeonGrid[(int)position.X + i, (int)position.Y + j] & DungeonTiles.BLOCKED_RANGE) != (DungeonTiles.BLOCKED_RANGE))
                             {
-                                dungeonGrid[(int)position.X + i, (int)position.Y + j] |= DungeonTiles.FOUND | DungeonTiles.OCT_5 | DungeonTiles.IN_RANGE;
+                                if ((dungeonGrid[(int)position.X + i, (int)position.Y + j] & DungeonTiles.FOUND) != (DungeonTiles.FOUND))
+                                {
+                                    dungeonGrid[(int)position.X + i, (int)position.Y + j] |= DungeonTiles.NEWLY_FOUND;
+                                }
+                                dungeonGrid[(int)position.X + i, (int)position.Y + j] |= DungeonTiles.FOUND | DungeonTiles.IN_RANGE;
                             }
                         }
                     }
@@ -327,7 +332,6 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                         {
                             if ((dungeonGrid[(int)position.X - i, (int)position.Y + j] & DungeonTiles.WALL) == DungeonTiles.WALL)
                             {
-                                //BlockTilesOctantOne(new Vector2((int)position.X - i, (int)position.Y - j), i, j, sightRange);
                                 Vector2 blockedPosition = new Vector2((int)position.X - i, (int)position.Y + j);
                                 for (int l = 0; l <= sightRange - z; l++)
                                 {
@@ -335,15 +339,19 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                                     {
                                         if (blockedPosition.X - m >= 0 && blockedPosition.Y + l < dungeonDimensions.Y && (new Vector2((int)blockedPosition.X + m, (int)blockedPosition.Y + l) != blockedPosition))
                                         {
-                                            dungeonGrid[(int)blockedPosition.X - m, (int)blockedPosition.Y + l] |= DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_6;
+                                            dungeonGrid[(int)blockedPosition.X - m, (int)blockedPosition.Y + l] |= DungeonTiles.BLOCKED_RANGE;
                                         }
                                     }
                                 }
 
                             }
-                            if ((dungeonGrid[(int)position.X - i, (int)position.Y + j] & DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_6) != (DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_6))
+                            if ((dungeonGrid[(int)position.X - i, (int)position.Y + j] & DungeonTiles.BLOCKED_RANGE) != (DungeonTiles.BLOCKED_RANGE))
                             {
-                                dungeonGrid[(int)position.X - i, (int)position.Y + j] |= DungeonTiles.FOUND | DungeonTiles.OCT_6 | DungeonTiles.IN_RANGE;
+                                if ((dungeonGrid[(int)position.X - i, (int)position.Y + j] & DungeonTiles.FOUND) != (DungeonTiles.FOUND))
+                                {
+                                    dungeonGrid[(int)position.X - i, (int)position.Y + j] |= DungeonTiles.NEWLY_FOUND;
+                                }
+                                dungeonGrid[(int)position.X - i, (int)position.Y + j] |= DungeonTiles.FOUND | DungeonTiles.IN_RANGE;
                             }
                         }
                     }
@@ -361,7 +369,6 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                         {
                             if ((dungeonGrid[(int)position.X - i, (int)position.Y + j] & DungeonTiles.WALL) == DungeonTiles.WALL)
                             {
-                                //BlockTilesOctantOne(new Vector2((int)position.X - i, (int)position.Y - j), i, j, sightRange);
                                 Vector2 blockedPosition = new Vector2((int)position.X - i, (int)position.Y + j);
                                 for (int m = 0; m <= sightRange - z; m++)
                                 {
@@ -369,15 +376,19 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                                     {
                                         if (blockedPosition.X - m >= 0 && blockedPosition.Y + l < dungeonDimensions.Y && (new Vector2((int)blockedPosition.X - m, (int)blockedPosition.Y + l) != blockedPosition))
                                         {
-                                            dungeonGrid[(int)blockedPosition.X - m, (int)blockedPosition.Y + l] |= DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_7;
+                                            dungeonGrid[(int)blockedPosition.X - m, (int)blockedPosition.Y + l] |= DungeonTiles.BLOCKED_RANGE;
                                         }
                                     }
                                 }
 
                             }
-                            if ((dungeonGrid[(int)position.X - i, (int)position.Y + j] & DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_7) != (DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_7))
+                            if ((dungeonGrid[(int)position.X - i, (int)position.Y + j] & DungeonTiles.BLOCKED_RANGE) != (DungeonTiles.BLOCKED_RANGE))
                             {
-                                dungeonGrid[(int)position.X - i, (int)position.Y + j] |= DungeonTiles.FOUND | DungeonTiles.OCT_7 | DungeonTiles.IN_RANGE;
+                                if ((dungeonGrid[(int)position.X - i, (int)position.Y + j] & DungeonTiles.FOUND) != (DungeonTiles.FOUND))
+                                {
+                                    dungeonGrid[(int)position.X - i, (int)position.Y + j] |= DungeonTiles.NEWLY_FOUND;
+                                }
+                                dungeonGrid[(int)position.X - i, (int)position.Y + j] |= DungeonTiles.FOUND | DungeonTiles.IN_RANGE;
                             }
                         }
                     }
@@ -395,7 +406,6 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                         {
                             if ((dungeonGrid[(int)position.X - i, (int)position.Y - j] & DungeonTiles.WALL) == DungeonTiles.WALL)
                             {
-                                //BlockTilesOctantOne(new Vector2((int)position.X - i, (int)position.Y - j), i, j, sightRange);
                                 Vector2 blockedPosition = new Vector2((int)position.X - i, (int)position.Y - j);
                                 for (int m = 0; m <= sightRange - z; m++)
                                 {
@@ -403,15 +413,19 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                                     {
                                         if (blockedPosition.X - m >= 0 && blockedPosition.Y - l >= 0 && (new Vector2((int)blockedPosition.X - m, (int)blockedPosition.Y - l) != blockedPosition))
                                         {
-                                            dungeonGrid[(int)blockedPosition.X - m, (int)blockedPosition.Y - l] |= DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_8;
+                                            dungeonGrid[(int)blockedPosition.X - m, (int)blockedPosition.Y - l] |= DungeonTiles.BLOCKED_RANGE;
                                         }
                                     }
                                 }
 
                             }
-                            if ((dungeonGrid[(int)position.X - i, (int)position.Y - j] & DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_8) != (DungeonTiles.BLOCKED_RANGE | DungeonTiles.OCT_8))
+                            if ((dungeonGrid[(int)position.X - i, (int)position.Y - j] & DungeonTiles.BLOCKED_RANGE) != (DungeonTiles.BLOCKED_RANGE))
                             {
-                                dungeonGrid[(int)position.X - i, (int)position.Y - j] |= DungeonTiles.FOUND | DungeonTiles.OCT_8 | DungeonTiles.IN_RANGE;
+                                if ((dungeonGrid[(int)position.X - i, (int)position.Y - j] & DungeonTiles.FOUND) != (DungeonTiles.FOUND))
+                                {
+                                    dungeonGrid[(int)position.X - i, (int)position.Y - j] |= DungeonTiles.NEWLY_FOUND;
+                                }
+                                dungeonGrid[(int)position.X - i, (int)position.Y - j] |= DungeonTiles.FOUND | DungeonTiles.IN_RANGE;
                             }
                         }
                     }
@@ -443,11 +457,14 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
 
         private void DrawDungeon(SpriteBatch spriteBatch, GraphicsDeviceManager graphics, Camera camera)
         {
+            
+            bool incrementNew = false;
             for (int i = 0; i < (int)dungeonDimensions.X; i++)
             {
                 for (int j = 0; j < (int)dungeonDimensions.Y; j++)
                 {
-                    if ((dungeonGrid[i, j] & DungeonTiles.FOUND) == DungeonTiles.FOUND && (dungeonGrid[i,j] & DungeonTiles.IN_RANGE) != DungeonTiles.IN_RANGE)
+                    if ((dungeonGrid[i, j] & DungeonTiles.FOUND) == DungeonTiles.FOUND && (dungeonGrid[i,j] & DungeonTiles.IN_RANGE) != DungeonTiles.IN_RANGE
+                         && (dungeonGrid[i, j] & DungeonTiles.NEWLY_FOUND) != DungeonTiles.NEWLY_FOUND)
                     {
                         if ((dungeonGrid[i, j] & DungeonTiles.FLOOR) == DungeonTiles.FLOOR)
                         {
@@ -460,7 +477,8 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                             spriteBatch.Draw(floor, tile, Color.DarkViolet);
                         }
                     }
-                    else if ((dungeonGrid[i, j] & DungeonTiles.FOUND) == DungeonTiles.FOUND && (dungeonGrid[i, j] & DungeonTiles.IN_RANGE) == DungeonTiles.IN_RANGE)
+                    else if ((dungeonGrid[i, j] & DungeonTiles.FOUND) == DungeonTiles.FOUND && (dungeonGrid[i, j] & DungeonTiles.IN_RANGE) == DungeonTiles.IN_RANGE
+                        && (dungeonGrid[i, j] & DungeonTiles.NEWLY_FOUND) != DungeonTiles.NEWLY_FOUND)
                     {
                         if ((dungeonGrid[i, j] & DungeonTiles.FLOOR) == DungeonTiles.FLOOR)
                         {
@@ -473,8 +491,37 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                             spriteBatch.Draw(floor, tile, Color.Violet);
                         }
                     }
+                    else if ((dungeonGrid[i, j] & DungeonTiles.NEWLY_FOUND) == DungeonTiles.NEWLY_FOUND)
+                    {
+                        incrementNew = true;
+                        if ((dungeonGrid[i, j] & DungeonTiles.FLOOR) == DungeonTiles.FLOOR)
+                        {
+                            Rectangle tile = new Rectangle(i * cellSize, j * cellSize, cellSize, cellSize);
+                            spriteBatch.Draw(floor, tile, new Color(Color.Green, opacity));
+                        }
+                        if ((dungeonGrid[i, j] & DungeonTiles.WALL) == DungeonTiles.WALL)
+                        {
+                            Rectangle tile = new Rectangle(i * cellSize, j * cellSize, cellSize, cellSize);
+                            spriteBatch.Draw(floor, tile, new Color(Color.Violet, opacity));
+                        }
+                    }
 
 
+                }
+            }
+            if (incrementNew)
+            {
+                opacity += .21f;
+            }
+            if (opacity > 1)
+            {
+                opacity = .1f;
+                for (int i = 0; i < (int)dungeonDimensions.X; i++)
+                {
+                    for (int j = 0; j < (int)dungeonDimensions.Y; j++)
+                    {
+                        dungeonGrid[i, j] &= ~DungeonTiles.NEWLY_FOUND;
+                    }
                 }
             }
         }

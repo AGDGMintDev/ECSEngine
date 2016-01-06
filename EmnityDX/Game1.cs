@@ -110,7 +110,7 @@ namespace EmnityDX
         {
             GraphicsDevice.Clear(Color.Black);
             //spriteBatch.Begin(transformMatrix: Matrix.CreateScale(GetScreenScale()));
-            spriteBatch.Begin(transformMatrix: _camera.GetMatrix());
+            spriteBatch.Begin(transformMatrix: _camera.GetMatrix(), blendState: BlendState.NonPremultiplied);
             _currentState.DrawContent(spriteBatch, _camera);
             spriteBatch.End();
             base.Draw(gameTime);
