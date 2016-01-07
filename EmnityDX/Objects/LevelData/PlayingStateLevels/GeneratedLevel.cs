@@ -72,7 +72,7 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
             ILevel nextLevel = this;
             levelComponents.EntitiesToDelete.ForEach(x => levelComponents.DestroyEntity(x));
             levelComponents.EntitiesToDelete.Clear();
-            ShowTiles();
+            DrawCircle();
             inputHandler.HandleInput(levelComponents, graphics, gameTime, prevKeyboardState, prevMouseState, prevGamepadState, camera, ref dungeonGrid);
             UpdateCamera(camera, gameTime);
             #region Debug changing levels
@@ -96,21 +96,24 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
             return nextLevel;
         }
 
-        private void ShowTiles()
+        void DrawCircle()
         {
-            int sightRange = 12;
-            Guid entity = levelComponents.Entities.Where(x => (x.ComponentFlags & Component.COMPONENT_ISPLAYER) == Component.COMPONENT_ISPLAYER).FirstOrDefault().Id;
+            int radius = 12;
+            Guid entity = levelComponents.Entities.Where(z => (z.ComponentFlags & Component.COMPONENT_ISPLAYER) == Component.COMPONENT_ISPLAYER).FirstOrDefault().Id;
             Vector2 position = levelComponents.PositionComponents[entity].Pos;
+            int initialX, x0, initialY, y0;
+            initialX = x0 = (int)position.X;
+            initialY = y0 = (int)position.Y;
+
             //Reset Range
-            for(int i = 0; i < dungeonDimensions.X; i++)
+            for (int i = 0; i < dungeonDimensions.X; i++)
             {
-                for(int j = 0; j < dungeonDimensions.Y; j++)
+                for (int j = 0; j < dungeonDimensions.Y; j++)
                 {
                     dungeonGrid[i, j] &= ~DungeonTiles.IN_RANGE;
-                    dungeonGrid[i, j] &= ~DungeonTiles.BLOCKED_RANGE;
                 }
             }
-
+            List<Vector2> visionRange = new List<Vector2>();
             /*
                          Shared
                          edge by
@@ -134,303 +137,173 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
                          edge by 
                          5 & 6
              */
-            List<Vector2> blockingSquares = new List<Vector2>();
-            //Octant 1
-            for (int z = 0; z < sightRange; z++)
+            int x = radius;
+            int y = 0;
+            int decisionOver2 = 1 - x;   // Decision criterion divided by 2 evaluated at x=r, y=0
+
+            while (y <= x)
             {
-                for(int j = 0; j <=  z; j++)
+                if (-x + x0 >= 0 && -y + y0 >= 0)
                 {
-                    for(int i = 0; i <= j; i++)
-                    {
-                        if ( position.X - i >= 0 && position.Y - j >= 0)
-                        {
-                            if ((dungeonGrid[(int)position.X - i, (int)position.Y - j] & DungeonTiles.WALL) == DungeonTiles.WALL)
-                            {
-                                Vector2 blockedPosition = new Vector2((int)position.X - i, (int)position.Y - j);
-                                for (int l = 0; l <= sightRange - z; l++)
-                                {
-                                    for (int m = 0; m <= l; m++)
-                                    {
-                                        if (blockedPosition.X - m >= 0 && blockedPosition.Y - l >= 0 && (new Vector2((int)blockedPosition.X - m, (int)blockedPosition.Y - l) != blockedPosition))
-                                        {
-                                            dungeonGrid[(int)blockedPosition.X - m, (int)blockedPosition.Y - l] |= DungeonTiles.BLOCKED_RANGE;
-                                        }
-                                    }
-                                }
+                    // Octant 5
+                    visionRange.Add(new Vector2(-x + x0, -y + y0));
+                }
+                else
+                {
+                    int newX = -x + x0 >= 0 ? -x + x0 : 0;
+                    int newY = -y + y0 >= 0 ? -y + y0 : 0;
+                    visionRange.Add(new Vector2(newX, newY));
+                }
+                if (-y + x0 >= 0 && -x + y0 >= 0)
+                {
+                    // Octant 6
+                    visionRange.Add(new Vector2(-y + x0, -x + y0));
+                }
+                else
+                {
+                    int newX = -y + x0 >= 0 ? -y + x0 : 0;
+                    int newY = -x + y0 >= 0 ? -x + y0 : 0;
+                    visionRange.Add(new Vector2(newX, newY));
+                }
 
-                            }
+                if (x + x0 < dungeonDimensions.X && -y + y0 >= 0)
+                {
+                    // Octant 8
+                    visionRange.Add(new Vector2(x + x0, -y + y0));
+                }
+                else
+                {
+                    int newX = x + x0 < dungeonDimensions.X ? x + x0 : (int)dungeonDimensions.X - 1;
+                    int newY = -y + y0 >= 0 ? -y + y0 : 0;
+                    visionRange.Add(new Vector2(newX, newY));
+                }
+                if (y + x0 < dungeonDimensions.X && -x + y0 >= 0)
+                {
+                    // Octant 7
+                    visionRange.Add(new Vector2(y + x0, -x + y0));
+                }
+                else
+                {
+                    int newX = y + x0 < dungeonDimensions.X ? y + x0 : (int)dungeonDimensions.X - 1;
+                    int newY = -x + y0 >= 0 ? -x + y0 : 0;
+                    visionRange.Add(new Vector2(newX, newY));
+                }
 
-                            if ((dungeonGrid[(int)position.X - i, (int)position.Y - j] & DungeonTiles.BLOCKED_RANGE) != (DungeonTiles.BLOCKED_RANGE))
-                            {
-                                if ((dungeonGrid[(int)position.X - i, (int)position.Y - j] & DungeonTiles.FOUND) != (DungeonTiles.FOUND))
-                                {
-                                    dungeonGrid[(int)position.X - i, (int)position.Y - j] |= DungeonTiles.NEWLY_FOUND;
-                                }
-                                dungeonGrid[(int)position.X - i, (int)position.Y - j] |= DungeonTiles.FOUND | DungeonTiles.IN_RANGE;
-                            }
-                        }
-                    }
+                if (x + x0 < dungeonDimensions.X && y + y0 < dungeonDimensions.Y)
+                {
+                    // Octant 1
+                    visionRange.Add(new Vector2(x + x0, y + y0));
+                }
+                else
+                {
+                    int newX = x + x0 < dungeonDimensions.X ? x + x0 : (int)dungeonDimensions.X - 1;
+                    int newY = y + y0 < dungeonDimensions.Y ? y + y0 : (int)dungeonDimensions.Y - 1;
+                    visionRange.Add(new Vector2(newX, newY));
+                }
+                if (y + x0 < dungeonDimensions.X && x + y0 < dungeonDimensions.Y)
+                {
+                    // Octant 2
+                    visionRange.Add(new Vector2(y + x0, x + y0));
+                }
+                else
+                {
+                    int newX = y + x0 < dungeonDimensions.X ? y + x0 : (int)dungeonDimensions.X - 1;
+                    int newY = x + y0 < dungeonDimensions.Y ? x + y0 : (int)dungeonDimensions.Y - 1;
+                    visionRange.Add(new Vector2(newX, newY));
+                }
+
+                if (-y + x0 >= 0 && x + y0 < dungeonDimensions.Y)
+                {
+                    // Octant 3
+                    visionRange.Add(new Vector2(-y + x0, x + y0));
+                }
+                else
+                {
+                    int newX = -y + x0 >= 0 ? -y + x0 : 0;
+                    int newY = x + y0 < dungeonDimensions.Y ? x + y0 : (int)dungeonDimensions.Y - 1;
+                    visionRange.Add(new Vector2(newX, newY));
+                }
+                if (-x + x0 >= 0 && y + y0 < dungeonDimensions.Y)
+                {
+                    // Octant 4
+                    visionRange.Add(new Vector2(-x + x0, y + y0));
+                }
+                else
+                {
+                    int newX = -x + x0 >= 0 ? -x + x0 : 0;
+                    int newY = y + y0 < dungeonDimensions.Y ? y + y0 : (int)dungeonDimensions.Y - 1;
+                    visionRange.Add(new Vector2(newX, newY));
+                }
+
+                y++;
+
+                if (decisionOver2 <= 0)
+                {
+                    decisionOver2 += 2 * y + 1;   // Change in decision criterion for y -> y+1
+                }
+                else
+                {
+                    x--;
+                    decisionOver2 += 2 * (y - x) + 1;   // Change for y -> y+1, x -> x-1
                 }
             }
 
-            //Octant 2
-            for (int z = 0; z < sightRange; z++)
+            //Fill the circle
+            foreach(var visionLine in visionRange.GroupBy(z => z.Y))
             {
-                for (int j = 0; j <= z; j++)
+                int smallestX = -1;
+                int largestX = -1;
+                foreach(var point in visionLine)
                 {
-                    for (int i = 0; i <= j; i++)
+                    smallestX = smallestX == -1 ? (int)point.X : smallestX;
+                    largestX = largestX == -1 ? (int)point.X : largestX;
+                    if((int)point.X < smallestX)
                     {
-                        if (position.X + i < dungeonDimensions.X && position.Y - j >= 0)
-                        {
-                            if ((dungeonGrid[(int)position.X + i, (int)position.Y - j] & DungeonTiles.WALL) == DungeonTiles.WALL)
-                            {
-                                Vector2 blockedPosition = new Vector2((int)position.X + i, (int)position.Y - j);
-                                for (int l = 0; l <= sightRange - z; l++)
-                                {
-                                    for (int m = 0; m <= l; m++)
-                                    {
-                                        if (blockedPosition.X + m < dungeonDimensions.X && blockedPosition.Y - l >= 0 && (new Vector2((int)blockedPosition.X + m, (int)blockedPosition.Y - l) != blockedPosition))
-                                        {
-                                            dungeonGrid[(int)blockedPosition.X + m, (int)blockedPosition.Y - l] |= DungeonTiles.BLOCKED_RANGE;
-                                        }
-                                    }
-                                }
-
-                            }
-                            if ((dungeonGrid[(int)position.X + i, (int)position.Y - j] & DungeonTiles.BLOCKED_RANGE) != (DungeonTiles.BLOCKED_RANGE))
-                            {
-                                if ((dungeonGrid[(int)position.X + i, (int)position.Y - j] & DungeonTiles.FOUND) != (DungeonTiles.FOUND))
-                                {
-                                    dungeonGrid[(int)position.X + i, (int)position.Y - j] |= DungeonTiles.NEWLY_FOUND;
-                                }
-                                dungeonGrid[(int)position.X + i, (int)position.Y - j] |= DungeonTiles.FOUND | DungeonTiles.IN_RANGE;
-                            }
-                        }
+                        smallestX = (int)point.X;
                     }
+                    if((int)point.X > largestX)
+                    {
+                        largestX = (int)point.X;
+                    }
+                }
+                //Build a line of points from smallest to largest x
+                for(int z = smallestX; z <= largestX; z++)
+                {
+                    visionRange.Add(new Vector2(z, visionLine.Key));
                 }
             }
 
-            //Octant 3
-            for (int z = 0; z < sightRange; z++)
+            foreach (Vector2 point in visionRange)
             {
-                for (int i = 0; i <= z; i++)
-                {
-                    for (int j = 0; j <= i; j++)
-                    {
-                        if (position.X + i < dungeonDimensions.X && position.Y - j >= 0)
-                        {
-                            if ((dungeonGrid[(int)position.X + i, (int)position.Y - j] & DungeonTiles.WALL) == DungeonTiles.WALL)
-                            {
-                                Vector2 blockedPosition = new Vector2((int)position.X + i, (int)position.Y - j);
-                                for (int m = 0; m <= sightRange - z; m++)
-                                {
-                                    for (int l = 0; l <= m; l++)
-                                    {
-                                        if (blockedPosition.X + m < dungeonDimensions.X && blockedPosition.Y - l >= 0 && (new Vector2((int)blockedPosition.X + m, (int)blockedPosition.Y - l) != blockedPosition))
-                                        {
-                                            dungeonGrid[(int)blockedPosition.X + m, (int)blockedPosition.Y - l] |= DungeonTiles.BLOCKED_RANGE;
-                                        }
-                                    }
-                                }
+                x0 = initialX;
+                y0 = initialY;
 
-                            }
-                            if ((dungeonGrid[(int)position.X + i, (int)position.Y - j] & DungeonTiles.BLOCKED_RANGE) != (DungeonTiles.BLOCKED_RANGE))
-                            {
-                                if ((dungeonGrid[(int)position.X + i, (int)position.Y - j] & DungeonTiles.FOUND) != (DungeonTiles.FOUND))
-                                {
-                                    dungeonGrid[(int)position.X + i, (int)position.Y - j] |= DungeonTiles.NEWLY_FOUND;
-                                }
-                                dungeonGrid[(int)position.X + i, (int)position.Y - j] |= DungeonTiles.FOUND | DungeonTiles.IN_RANGE;
-                            }
-                        }
+                int dx = Math.Abs((int)point.X - x0), sx = x0 < (int)point.X ? 1 : -1;
+                int dy = -Math.Abs((int)point.Y - y0), sy = y0 < (int)point.Y ? 1 : -1;
+                int err = dx + dy, e2; /* error value e_xy */
+
+                for (;;)
+                {  /* loop */
+                    
+                    if((dungeonGrid[x0, y0] & DungeonTiles.FOUND) != DungeonTiles.FOUND)
+                    {
+                        dungeonGrid[x0, y0] |= DungeonTiles.NEWLY_FOUND;
                     }
+                    dungeonGrid[x0, y0] |= DungeonTiles.FOUND | DungeonTiles.IN_RANGE;
+                    if ((dungeonGrid[x0, y0] & DungeonTiles.WALL) == DungeonTiles.WALL || ((dungeonGrid[x0, y0] & DungeonTiles.ROCK) == DungeonTiles.ROCK))
+                    {
+                        break;
+                    }
+
+                    if (x0 == (int)point.X && y0 == (int)point.Y) break;
+                    e2 = 2 * err;
+                    if (e2 >= dy) { err += dy; x0 += sx; } /* e_xy+e_x > 0 */
+                    if (e2 <= dx) { err += dx; y0 += sy; } /* e_xy+e_y < 0 */
                 }
+
+
             }
 
-            //Octant 4
-            for (int z = 0; z < sightRange; z++)
-            {
-                for (int i = 0; i <= z; i++)
-                {
-                    for (int j = 0; j <= i; j++)
-                    {
-                        if (position.X + i < dungeonDimensions.X && position.Y + j < dungeonDimensions.Y)
-                        {
-                            if ((dungeonGrid[(int)position.X + i, (int)position.Y + j] & DungeonTiles.WALL) == DungeonTiles.WALL)
-                            {
-                                Vector2 blockedPosition = new Vector2((int)position.X + i, (int)position.Y + j);
-                                for (int m = 0; m <= sightRange - z; m++)
-                                {
-                                    for (int l = 0; l <= m; l++)
-                                    {
-                                        if (blockedPosition.X + m < dungeonDimensions.X && blockedPosition.Y + l < dungeonDimensions.Y && (new Vector2((int)blockedPosition.X + m, (int)blockedPosition.Y + l) != blockedPosition))
-                                        {
-                                            dungeonGrid[(int)blockedPosition.X + m, (int)blockedPosition.Y + l] |= DungeonTiles.BLOCKED_RANGE;
-                                        }
-                                    }
-                                }
-
-                            }
-                            if ((dungeonGrid[(int)position.X + i, (int)position.Y + j] & DungeonTiles.BLOCKED_RANGE) != (DungeonTiles.BLOCKED_RANGE))
-                            {
-                                if ((dungeonGrid[(int)position.X + i, (int)position.Y + j] & DungeonTiles.FOUND) != (DungeonTiles.FOUND))
-                                {
-                                    dungeonGrid[(int)position.X + i, (int)position.Y + j] |= DungeonTiles.NEWLY_FOUND;
-                                }
-                                dungeonGrid[(int)position.X + i, (int)position.Y + j] |= DungeonTiles.FOUND | DungeonTiles.IN_RANGE;
-                            }
-                        }
-                    }
-                }
-            }
-
-            //Octant 5
-            for (int z = 0; z < sightRange; z++)
-            {
-                for (int j = 0; j <= z; j++)
-                {
-                    for (int i = 0; i <= j; i++)
-                    {
-                        if (position.X + i < dungeonDimensions.X && position.Y + j < dungeonDimensions.Y)
-                        {
-                            if ((dungeonGrid[(int)position.X + i, (int)position.Y + j] & DungeonTiles.WALL) == DungeonTiles.WALL)
-                            {
-                                Vector2 blockedPosition = new Vector2((int)position.X + i, (int)position.Y + j);
-                                for (int l = 0; l <= sightRange - z; l++)
-                                {
-                                    for (int m = 0; m <= l; m++)
-                                    {
-                                        if (blockedPosition.X + m < dungeonDimensions.X && blockedPosition.Y + l < dungeonDimensions.Y && (new Vector2((int)blockedPosition.X + m, (int)blockedPosition.Y + l) != blockedPosition))
-                                        {
-                                            dungeonGrid[(int)blockedPosition.X + m, (int)blockedPosition.Y + l] |= DungeonTiles.BLOCKED_RANGE;
-                                        }
-                                    }
-                                }
-
-                            }
-                            if ((dungeonGrid[(int)position.X + i, (int)position.Y + j] & DungeonTiles.BLOCKED_RANGE) != (DungeonTiles.BLOCKED_RANGE))
-                            {
-                                if ((dungeonGrid[(int)position.X + i, (int)position.Y + j] & DungeonTiles.FOUND) != (DungeonTiles.FOUND))
-                                {
-                                    dungeonGrid[(int)position.X + i, (int)position.Y + j] |= DungeonTiles.NEWLY_FOUND;
-                                }
-                                dungeonGrid[(int)position.X + i, (int)position.Y + j] |= DungeonTiles.FOUND | DungeonTiles.IN_RANGE;
-                            }
-                        }
-                    }
-                }
-            }
-
-            //Octant 6
-            for (int z = 0; z < sightRange; z++)
-            {
-                for (int j = 0; j <= z; j++)
-                {
-                    for (int i = 0; i <= j; i++)
-                    {
-                        if (position.X - i >= 0 && position.Y + j < dungeonDimensions.Y)
-                        {
-                            if ((dungeonGrid[(int)position.X - i, (int)position.Y + j] & DungeonTiles.WALL) == DungeonTiles.WALL)
-                            {
-                                Vector2 blockedPosition = new Vector2((int)position.X - i, (int)position.Y + j);
-                                for (int l = 0; l <= sightRange - z; l++)
-                                {
-                                    for (int m = 0; m <= l; m++)
-                                    {
-                                        if (blockedPosition.X - m >= 0 && blockedPosition.Y + l < dungeonDimensions.Y && (new Vector2((int)blockedPosition.X + m, (int)blockedPosition.Y + l) != blockedPosition))
-                                        {
-                                            dungeonGrid[(int)blockedPosition.X - m, (int)blockedPosition.Y + l] |= DungeonTiles.BLOCKED_RANGE;
-                                        }
-                                    }
-                                }
-
-                            }
-                            if ((dungeonGrid[(int)position.X - i, (int)position.Y + j] & DungeonTiles.BLOCKED_RANGE) != (DungeonTiles.BLOCKED_RANGE))
-                            {
-                                if ((dungeonGrid[(int)position.X - i, (int)position.Y + j] & DungeonTiles.FOUND) != (DungeonTiles.FOUND))
-                                {
-                                    dungeonGrid[(int)position.X - i, (int)position.Y + j] |= DungeonTiles.NEWLY_FOUND;
-                                }
-                                dungeonGrid[(int)position.X - i, (int)position.Y + j] |= DungeonTiles.FOUND | DungeonTiles.IN_RANGE;
-                            }
-                        }
-                    }
-                }
-            }
-
-            //Octant 7
-            for (int z = 0; z < sightRange; z++)
-            {
-                for (int i = 0; i <= z; i++)
-                {
-                    for (int j = 0; j <= i; j++)
-                    {
-                        if (position.X - i >= 0 && position.Y + j < dungeonDimensions.Y)
-                        {
-                            if ((dungeonGrid[(int)position.X - i, (int)position.Y + j] & DungeonTiles.WALL) == DungeonTiles.WALL)
-                            {
-                                Vector2 blockedPosition = new Vector2((int)position.X - i, (int)position.Y + j);
-                                for (int m = 0; m <= sightRange - z; m++)
-                                {
-                                    for (int l = 0; l <= m; l++)
-                                    {
-                                        if (blockedPosition.X - m >= 0 && blockedPosition.Y + l < dungeonDimensions.Y && (new Vector2((int)blockedPosition.X - m, (int)blockedPosition.Y + l) != blockedPosition))
-                                        {
-                                            dungeonGrid[(int)blockedPosition.X - m, (int)blockedPosition.Y + l] |= DungeonTiles.BLOCKED_RANGE;
-                                        }
-                                    }
-                                }
-
-                            }
-                            if ((dungeonGrid[(int)position.X - i, (int)position.Y + j] & DungeonTiles.BLOCKED_RANGE) != (DungeonTiles.BLOCKED_RANGE))
-                            {
-                                if ((dungeonGrid[(int)position.X - i, (int)position.Y + j] & DungeonTiles.FOUND) != (DungeonTiles.FOUND))
-                                {
-                                    dungeonGrid[(int)position.X - i, (int)position.Y + j] |= DungeonTiles.NEWLY_FOUND;
-                                }
-                                dungeonGrid[(int)position.X - i, (int)position.Y + j] |= DungeonTiles.FOUND | DungeonTiles.IN_RANGE;
-                            }
-                        }
-                    }
-                }
-            }
-
-            //Octant 8
-            for (int z = 0; z < sightRange; z++)
-            {
-                for (int i = 0; i <= z; i++)
-                {
-                    for (int j = 0; j <= i; j++)
-                    {
-                        if (position.X - i >= 0 && position.Y - j >= 0)
-                        {
-                            if ((dungeonGrid[(int)position.X - i, (int)position.Y - j] & DungeonTiles.WALL) == DungeonTiles.WALL)
-                            {
-                                Vector2 blockedPosition = new Vector2((int)position.X - i, (int)position.Y - j);
-                                for (int m = 0; m <= sightRange - z; m++)
-                                {
-                                    for (int l = 0; l <= m; l++)
-                                    {
-                                        if (blockedPosition.X - m >= 0 && blockedPosition.Y - l >= 0 && (new Vector2((int)blockedPosition.X - m, (int)blockedPosition.Y - l) != blockedPosition))
-                                        {
-                                            dungeonGrid[(int)blockedPosition.X - m, (int)blockedPosition.Y - l] |= DungeonTiles.BLOCKED_RANGE;
-                                        }
-                                    }
-                                }
-
-                            }
-                            if ((dungeonGrid[(int)position.X - i, (int)position.Y - j] & DungeonTiles.BLOCKED_RANGE) != (DungeonTiles.BLOCKED_RANGE))
-                            {
-                                if ((dungeonGrid[(int)position.X - i, (int)position.Y - j] & DungeonTiles.FOUND) != (DungeonTiles.FOUND))
-                                {
-                                    dungeonGrid[(int)position.X - i, (int)position.Y - j] |= DungeonTiles.NEWLY_FOUND;
-                                }
-                                dungeonGrid[(int)position.X - i, (int)position.Y - j] |= DungeonTiles.FOUND | DungeonTiles.IN_RANGE;
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         private void UpdateCamera(Camera camera, GameTime gameTime)
@@ -463,8 +336,8 @@ namespace EmnityDX.Objects.LevelData.PlayingStateLevels
             {
                 for (int j = 0; j < (int)dungeonDimensions.Y; j++)
                 {
-                    if ((dungeonGrid[i, j] & DungeonTiles.FOUND) == DungeonTiles.FOUND && (dungeonGrid[i,j] & DungeonTiles.IN_RANGE) != DungeonTiles.IN_RANGE
-                         && (dungeonGrid[i, j] & DungeonTiles.NEWLY_FOUND) != DungeonTiles.NEWLY_FOUND)
+                    if ((dungeonGrid[i, j] & DungeonTiles.FOUND) == DungeonTiles.FOUND  && (dungeonGrid[i, j] & DungeonTiles.NEWLY_FOUND) != DungeonTiles.NEWLY_FOUND
+                        && (dungeonGrid[i, j] & DungeonTiles.IN_RANGE) != DungeonTiles.IN_RANGE)
                     {
                         if ((dungeonGrid[i, j] & DungeonTiles.FLOOR) == DungeonTiles.FLOOR)
                         {
